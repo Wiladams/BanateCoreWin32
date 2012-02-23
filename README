@@ -1,0 +1,12 @@
+BanateCoreWin32
+
+This is a small library of things related to programming with Windows.
+
+The library uses the LuaJit FFI mechanism as the interop mechanism.
+
+Of particular good usage is the GameWindow.lua class.  This sets up
+a simple window that can then be used for many different things.
+Eventually, this window will manage a GL Context.
+
+You must use LuaJit - beta 9
+as of 23 Feb 2012

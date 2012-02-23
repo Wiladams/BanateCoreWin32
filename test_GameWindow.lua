@@ -1,12 +1,14 @@
-require "ApplicationWindow"
+require "GameWindow"
 
+-- The routine that gets called for any
+-- mouse activity messages
 function mouseinteraction(msg)
 	print(string.format("Mouse: 0x%x", msg.message))
 end
 
 function main()
-	local appwin = ApplicationWindow({
-		Title = "Application Window",
+	local appwin = GameWindow({
+		Title = "Game Window",
 		MouseInteractor = mouseinteraction,
 		})
 

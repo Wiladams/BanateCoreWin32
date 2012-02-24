@@ -1642,14 +1642,5 @@ void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint unif
 ]]
 
 
-ffi.cdef[[
-typedef int (__attribute__((__stdcall__)) *PROC)();
-
-void (*glExtGetShadersQCOM)(unsigned *shaders, int maxShaders, int *numShaders);
-
-PROC __attribute__((__stdcall__)) wglGetProcAddress(LPCSTR);
-
-]]
-
 
 return gl

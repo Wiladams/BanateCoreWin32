@@ -31,6 +31,19 @@ typedef struct {
 	BITMAPINFO	Info;
 } GDIDIBSection;
 
+typedef struct _POINTFLOAT {
+  FLOAT  x;
+  FLOAT  y;
+} POINTFLOAT;
+
+typedef struct _GLYPHMETRICSFLOAT {
+  FLOAT      gmfBlackBoxX;
+  FLOAT      gmfBlackBoxY;
+  POINTFLOAT gmfptGlyphOrigin;
+  FLOAT      gmfCellIncX;
+  FLOAT      gmfCellIncY;
+} GLYPHMETRICSFLOAT, *LPGLYPHMETRICSFLOAT;
+
 ]]
 
 
@@ -323,8 +336,6 @@ end
 --[[
 print("win_gdi32.lua - TEST")
 
-local pbgra = ffi.typeof("Ppixel_BGRA_b[?]")
-print(pbgra)
 
 local dc = GDIContext()
 print(dc)

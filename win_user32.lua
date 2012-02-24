@@ -66,6 +66,7 @@ enum {
 	WM_NCPAINT 			= 0x0085,
 	WM_NCACTIVATE 		= 0x0086,
 
+	// Non Client (NC) mouse activity
 	WM_NCMOUSEMOVE 		= 0x00A0,
 	WM_NCLBUTTONDOWN 	= 0x00A1,
 	WM_NCLBUTTONUP 		= 0x00A2,
@@ -79,6 +80,8 @@ enum {
 
 	WM_INPUT_DEVICE_CHANGE = 0x00FE,
 	WM_INPUT = 0x00FF,
+
+	// Keyboard Activity
 	WM_KEYDOWN = 0x0100,
 	WM_KEYUP = 0x0101,
 	WM_CHAR = 0x0102,
@@ -89,8 +92,11 @@ enum {
 	WM_SYSDEADCHAR = 0x0107,
 	WM_COMMAND = 0x0111,
 	WM_SYSCOMMAND = 0x0112,
+
+
 	WM_TIMER = 0x0113,
 
+	// client area mouse activity
 	WM_MOUSEFIRST		= 0x0200,
 	WM_MOUSEMOVE		= 0x0200,
 	WM_LBUTTONDOWN		= 0x0201,

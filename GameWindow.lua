@@ -42,6 +42,7 @@ function GameWindow:_init(params)
 	self.IsReady = false
 	self.IsValid = false
 	self.IsRunning = false
+
 	self.FrameRate = params.FrameRate
 	self.Interval =1/ self.FrameRate
 
@@ -52,10 +53,12 @@ function GameWindow:_init(params)
 
 	self:Register(params)
 	self:CreateWindow(params)
-
-
 end
 
+function GameWindow:SetFrameRate(rate)
+	self.FrameRate = rate
+	self.Interval = 1/self.FrameRate
+end
 
 
 --[[
@@ -164,7 +167,7 @@ function GameWindow:CreateWindow(params)
 	local dwStyle = bit.bor(C.WS_SYSMENU, C.WS_VISIBLE, C.WS_POPUP)
 
 
-	self.Handle = user32.CreateWindowExA(
+	self.WindowHandle = user32.CreateWindowExA(
 		0,
 		self.ClassName,
 		self.Title,
@@ -177,7 +180,7 @@ function GameWindow:CreateWindow(params)
 		self.AppInstance,
 		nil)
 
-	if self.Handle == nil then
+	if self.WindowHandle == nil then
 		print('unable to create window')
 		print("Error: ", C.GetLastError())
 	else
@@ -186,21 +189,30 @@ function GameWindow:CreateWindow(params)
 end
 
 function GameWindow:Show()
-	user32.ShowWindow(self.Handle, C.SW_SHOW)
+	user32.ShowWindow(self.WindowHandle, C.SW_SHOW)
 end
 
 function GameWindow:Hide()
 end
 
 function GameWindow:Update()
-	user32.UpdateWindow(self.Handle)
+	user32.UpdateWindow(self.WindowHandle)
 end
 
-function GameWindow:Tick(tickCount)
+function GameWindow:OnTick(tickCount)
 end
 
-function GameWindow:CalculateNextFrameTimeout()
-	return 30
+
+function GameWindow:OnKeyboardMessage(msg)
+	if self.KeyboardInteractor then
+		self.KeyboardInteractor(msg)
+	end
+end
+
+function GameWindow:OnMouseMessage(msg)
+	if self.MouseInteractor then
+		self.MouseInteractor(msg)
+	end
 end
 
 -- The following 'jit.off(Loop)' is here because LuaJit
@@ -242,15 +254,17 @@ function Loop(win)
 
 			if (msg.message >= C.WM_MOUSEFIRST and msg.message <= C.WM_MOUSELAST) or
 				(msg.message >= C.WM_NCMOUSEMOVE and msg.message <= C.WM_NCMBUTTONDBLCLK) then
-				if win.MouseInteractor then
-					win.MouseInteractor(msg)
-				end
+				win:OnMouseMessage(msg)
+			end
+
+			if (msg.message >= C.WM_KEYDOWN and msg.message <= C.WM_SYSCOMMAND) then
+				win:OnKeyboardMessage(msg)
 			end
 		end
 
 		timeleft = nextTime - sw:Milliseconds();
 		if (timeleft <= 0) then
-			win:Tick(tickCount);
+			win:OnTick(tickCount);
 			tickCount = tickCount + 1
 			nextTime = nextTime + win.Interval * 1000
 			timeleft = nextTime - sw:Milliseconds();

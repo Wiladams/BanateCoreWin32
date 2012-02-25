@@ -8,8 +8,14 @@ local class = require"class"
 
 require "win_gdi32"
 require "win_user32"
+require "gl_wgl"
+
+local gllib = ffi.load("opengl32")
 
 local C = ffi.C
+
+local error, getmetatable, io, pairs, rawget, rawset, setmetatable, tostring, type =
+    _G.error, _G.getmetatable, _G.io, _G.pairs, _G.rawget, _G.rawset, _G.setmetatable, _G.tostring, _G.type
 
 
 
@@ -32,6 +38,12 @@ function split(str)
 	end
 	return ret
 end
+
+
+
+
+
+
 
 
 class.GL()
@@ -81,8 +93,8 @@ local function main()
 	local sw, sh = ffi.new( "int[1]" ), ffi.new( "int[1]" )
 	local dx, dy
 
-	test_gl();
-
+	--test_gl();
+	test_wgl();
 
 
 	while glfw.glfwIsWindow(window) and glfw.glfwGetKey(window, glfw.GLFW_KEY_ESCAPE) ~= glfw.GLFW_PRESS

@@ -11,13 +11,16 @@ local C = ffi.C
 
 local class = require "class"
 
+local gl = require "gl"
+require "win_gdi32"
 require "win_user32"
 require "win_kernel32"
+require "win_opengl32"
 require "StopWatch"
 
 local user32 = ffi.load("User32")
 local kernel32 = ffi.load("Kernel32")
-
+local gdi32 = ffi.load("gdi32")
 
 class.GameWindow()
 
@@ -50,6 +53,8 @@ function GameWindow:_init(params)
 	self.KeyboardInteractor = params.KeyboardInteractor
 	self.MouseInteractor = params.MouseInteractor
 	self.GestureInteractor = params.GestureInteractor
+	self.OnFocusDelegate = params.OnFocusDelegate
+	self.OnTickDelegate = params.OnTickDelegate
 
 	self:Register(params)
 	self:CreateWindow(params)
@@ -60,6 +65,24 @@ function GameWindow:SetFrameRate(rate)
 	self.Interval = 1/self.FrameRate
 end
 
+function GameWindow:OnCreate()
+print("GameWindow:OnCreate")
+
+	self.GDIHandle = C.GetDC(self.WindowHandle)
+	self.GDIContext = GDIContext(self.GDIHandle)
+	self.GLContext = GLContext():new(self.GDIHandle)
+	self.GLContext:Attach()
+
+	print("GameWindow:OnCreate - GL Device Context: ", self.GLContext)
+end
+
+function GameWindow.OnDestroy(msg)
+	print("GameWindow:OnDestroy")
+
+	C.PostQuitMessage(0)
+
+	return 0
+end
 
 --[[
 	for window creation, we should see the
@@ -85,7 +108,7 @@ end
 		WM_NCDESTROY 		= 0x0082,
 --]]
 
-function GameWindow.WindowProc(hwnd, msg, wparam, lparam)
+function WindowProc(hwnd, msg, wparam, lparam)
 --print(string.format("message: 0x%x", msg))
 
 --[[
@@ -103,6 +126,7 @@ function GameWindow.WindowProc(hwnd, msg, wparam, lparam)
 	elseif msg == C.WM_NCCREATE then
 
 		print("WM_NCCREATE")
+		crstruct.lpCreateParams -- lparam from CreateWindowExA
 		local crstruct = ffi.cast("LPCREATESTRUCTA", lparam)
 		print("  Class: ", ffi.string(crstruct.lpszClass))
 		print("  Title: ", ffi.string(crstruct.lpszName))
@@ -115,11 +139,8 @@ function GameWindow.WindowProc(hwnd, msg, wparam, lparam)
 	end
 --]]
 	if (msg == C.WM_DESTROY) then
-		C.PostQuitMessage(0)
-		return 0
-		--return user32.DefWindowProcA(hwnd, msg, wparam, lparam)
+		return GameWindow.OnDestroy(msg)
 	end
-
 
 	return user32.DefWindowProcA(hwnd, msg, wparam, lparam);
 end
@@ -136,7 +157,7 @@ function GameWindow:Register(params)
 	local aClass = ffi.new('WNDCLASSEXA', {
 		cbSize = ffi.sizeof("WNDCLASSEXA");
 		style = classStyle;
-		lpfnWndProc = GameWindow.WindowProc;
+		lpfnWndProc = WindowProc;
 		cbClsExtra = 0;
 		cbWndExtra = 0;
 		hInstance = self.AppInstance;
@@ -162,6 +183,8 @@ end
 function GameWindow:CreateWindow(params)
 	self.ClassName = params.ClassName
 	self.Title = params.Title
+	self.Width = params.Extent[1]
+	self.Height = params.Extent[2]
 
 	local dwExStyle = bit.bor(C.WS_EX_APPWINDOW, C.WS_EX_WINDOWEDGE)
 	local dwStyle = bit.bor(C.WS_SYSMENU, C.WS_VISIBLE, C.WS_POPUP)
@@ -185,6 +208,7 @@ function GameWindow:CreateWindow(params)
 		print("Error: ", C.GetLastError())
 	else
 		self.IsValid = true
+		self:OnCreate()
 	end
 end
 
@@ -199,9 +223,22 @@ function GameWindow:Update()
 	user32.UpdateWindow(self.WindowHandle)
 end
 
+
+
+
+
 function GameWindow:OnTick(tickCount)
+	if (self.OnTickDelegate) then
+		self.OnTickDelegate(self, tickCount)
+	end
 end
 
+function GameWindow:OnFocusMessage(msg)
+print("OnFocusMessage")
+	if (self.OnFocusDelegate) then
+		self.OnFocusDelegate(msg)
+	end
+end
 
 function GameWindow:OnKeyboardMessage(msg)
 	if self.KeyboardInteractor then
@@ -248,8 +285,14 @@ function Loop(win)
 			user32.TranslateMessage(msg)
 			user32.DispatchMessageA(msg)
 
+--print(string.format("Message: 0x%x", msg.message))
+
 			if msg.message == C.WM_QUIT then
 				win.IsRunning = false
+			end
+
+			if (msg.message == C.WM_CREATE) then
+				win:OnCreate(msg)
 			end
 
 			if (msg.message >= C.WM_MOUSEFIRST and msg.message <= C.WM_MOUSELAST) or
@@ -260,6 +303,10 @@ function Loop(win)
 			if (msg.message >= C.WM_KEYDOWN and msg.message <= C.WM_SYSCOMMAND) then
 				win:OnKeyboardMessage(msg)
 			end
+
+--			if (msg.message == C.WM_SETFOCUS) then
+--				win:OnFocusMessage(msg)
+--			end
 		end
 
 		timeleft = nextTime - sw:Milliseconds();

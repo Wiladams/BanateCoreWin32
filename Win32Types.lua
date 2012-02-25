@@ -83,6 +83,7 @@ typedef int				HFILE;
 typedef HANDLE			HFONT;
 typedef HANDLE			HGDIOBJ;
 typedef HANDLE			HGLOBAL;
+typedef HANDLE 			HGLRC;
 typedef HANDLE			HHOOK;
 typedef HANDLE			HINSTANCE;
 typedef HANDLE			HKEY;
@@ -323,24 +324,6 @@ BITMAPINFO = ffi.metatype("BITMAPINFO", BITMAPINFO_mt)
 
 
 
--- For Color
--- 0x00bbggrr
-function RGB(byRed, byGreen, byBlue)
-	local acolor = lshift(byBlue,16) + lshift(byGreen,8) + byRed;
-	return acolor;
-end
-
-function GetRValue(c)
-	return band(c, 0xff)
-end
-
-function GetGValue(c)
-	return band(rshift(c,8), 0xff)
-end
-
-function GetBValue(c)
-	return band(rshift(c,16), 0xff)
-end
 
 --[[
 local C = ffi.C

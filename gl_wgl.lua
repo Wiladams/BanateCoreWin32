@@ -1,77 +1,40 @@
 local ffi = require "ffi"
 require "Win32Types"
 require "win_gdi32"
+local gl    = require( "gl" )
+
 
 ffi.cdef[[
-typedef struct tagLAYERPLANEDESCRIPTOR {
-  WORD  nSize;
-  WORD  nVersion;
-  DWORD dwFlags;
-  BYTE  iPixelType;
-  BYTE  cColorBits;
-  BYTE  cRedBits;
-  BYTE  cRedShift;
-  BYTE  cGreenBits;
-  BYTE  cGreenShift;
-  BYTE  cBlueBits;
-  BYTE  cBlueShift;
-  BYTE  cAlphaBits;
-  BYTE  cAlphaShift;
-  BYTE  cAccumBits;
-  BYTE  cAccumRedBits;
-  BYTE  cAccumGreenBits;
-  BYTE  cAccumBlueBits;
-  BYTE  cAccumAlphaBits;
-  BYTE  cDepthBits;
-  BYTE  cStencilBits;
-  BYTE  cAuxBuffers;
-  BYTE  iLayerPlane;
-  BYTE  bReserved;
-  COLORREF crTransparent;
-} LAYERPLANEDESCRIPTOR, *LPLAYERPLANEDESCRIPTOR;
+
+	//void (*glExtGetShadersQCOM)(unsigned *shaders, int maxShaders, int *numShaders);
+	const char * (*wglGetExtensionsStringARB)(HDC hdc);
+	typedef const char * (* PFNWGLGETEXTENSIONSSTRINGARBPROC) (HDC hdc);
+
 ]]
 
+--[[
+-- Function prototypes for wgl extension functions
 ffi.cdef[[
-typedef HANDLE HGLRC;
+// WGL_ARB_buffer_region
+typedef HANDLE ( * PFNWGLCREATEBUFFERREGIONARBPROC) (HDC hDC, int iLayerPlane, UINT uType);
+typedef void ( * PFNWGLDELETEBUFFERREGIONARBPROC) (HANDLE hRegion);
+typedef BOOL ( * PFNWGLSAVEBUFFERREGIONARBPROC) (HANDLE hRegion, int x, int y, int width, int height);
+typedef BOOL ( * PFNWGLRESTOREBUFFERREGIONARBPROC) (HANDLE hRegion, int x, int y, int width, int height, int xSrc, int ySrc);
 
-	void (*glExtGetShadersQCOM)(unsigned *shaders, int maxShaders, int *numShaders);
+// WGL_ARB_multisample
 
-	// Callback functions
-	typedef int (__attribute__((__stdcall__)) *PROC)();
+// WGL_ARB_extensions_string
+const char * wglGetExtensionsStringARB (HDC);
 
 
-	BOOL wglCopyContext(HGLRC hglrcSrc, HGLRC hglrcDst, UINT  mask);
+// WGL_ARB_pixel_format
+extern BOOL WINAPI wglGetPixelFormatAttribivARB (HDC, int, int, UINT, const int *, int *);
+extern BOOL WINAPI wglGetPixelFormatAttribfvARB (HDC, int, int, UINT, const int *, FLOAT *);
+extern BOOL WINAPI wglChoosePixelFormatARB (HDC, const int *, const FLOAT *, UINT, int *, UINT *);
 
-	HGLRC wglCreateContext(HDC hdc);
-
-	HGLRC wglCreateLayerContext(HDC hdc, int  iLayerPlane);
-
-	BOOL wglDeleteContext(HGLRC  hglrc);
-
-	BOOL wglDescribeLayerPlane(HDC hdc,int  iPixelFormat, int  iLayerPlane, UINT  nBytes, LPLAYERPLANEDESCRIPTOR plpd);
-
-	HGLRC wglGetCurrentContext(void);
-
-	HDC wglGetCurrentDC(void);
-
-	int wglGetLayerPaletteEntries(HDC  hdc, int  iLayerPlane, int  iStart,int  cEntries, const COLORREF *pcr);
-
-	PROC wglGetProcAddress(LPCSTR lpszProc);
-
-	BOOL wglMakeCurrent(HDC hdc, HGLRC  hglrc);
-
-	BOOL wglRealizeLayerPalette(HDC hdc, int iLayerPlane, BOOL bRealize);
-
-	int wglSetLayerPaletteEntries(HDC  hdc, int iLayerPlane,int  iStart,int  cEntries, const COLORREF *pcr);
-
-	BOOL wglShareLists(HGLRC  hglrc1, HGLRC  hglrc2);
-
-	BOOL wglSwapLayerBuffers(HDC hdc, UINT  fuPlanes);
-
-	BOOL wglUseFontBitmapsA(HDC  hdc, DWORD  first, DWORD  count, DWORD listBase);
-	BOOL wglUseFontBitmapsW(HDC  hdc, DWORD  first, DWORD  count, DWORD listBase);
-
-	BOOL wglUseFontOutlinesA(HDC  hdc,DWORD  first, DWORD  count, DWORD  listBase,  FLOAT  deviation, FLOAT  extrusion,int  format, LPGLYPHMETRICSFLOAT  lpgmf);
-	BOOL wglUseFontOutlinesW(HDC  hdc,DWORD  first, DWORD  count, DWORD  listBase,  FLOAT  deviation, FLOAT  extrusion,int  format, LPGLYPHMETRICSFLOAT  lpgmf);
-
+typedef BOOL (WINAPI * PFNWGLGETPIXELFORMATATTRIBIVARBPROC) (HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, int *piValues);
+typedef BOOL (WINAPI * PFNWGLGETPIXELFORMATATTRIBFVARBPROC) (HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, FLOAT *pfValues);
+typedef BOOL (WINAPI * PFNWGLCHOOSEPIXELFORMATARBPROC) (HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
 ]]
+
+--]]

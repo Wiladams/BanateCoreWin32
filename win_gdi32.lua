@@ -1,6 +1,8 @@
 local ffi = require "ffi"
 local C = ffi.C
-require "bit"
+local bit = require "bit"
+local lshift = bit.lshift
+local rshift = bit.rshift
 
 local band = bit.band	-- &
 local bor = bit.xbor	-- |
@@ -9,11 +11,94 @@ local bnot = bit.bnot	-- ~
 require "Win32Types"
 require "Pixel"
 
+ffi.cdef[[
+/* pixel types */
+enum PFDPixelType
+{
+	RGBA = 0,
+	ColorIndex = 1
+}
+
+    /* layer types */
+enum PFDLayerPlanes
+{
+    Main = 0,
+    Overlay = 1,
+    Underlay = (-1)
+}
+
+
+/* PIXELFORMATDESCRIPTOR flags */
+enum PFDFlags {
+	DoubleBuffer = 0x00000001,
+    Stereo = 0x00000002,
+	DrawToWindow = 0x00000004,
+	DrawToBitmap = 0x00000008,
+	SupportGDI = 0x00000010,
+	SupportOpenGL = 0x00000020,
+	GenericFormat = 0x00000040,
+	NeedPalette = 0x00000080,
+	NeedSystemPalette = 0x00000100,
+	SwapExchange = 0x00000200,
+	SwapCopy = 0x00000400,
+	SwapLayerBuffers = 0x00000800,
+	GenericAccelerated = 0x00001000,
+	SupportDirectDraw = 0x00002000,
+	Direct3DAccelerated = 0x00004000,
+	SupportComposition = 0x00008000,
+};
+
+    /* PIXELFORMATDESCRIPTOR flags for use in ChoosePixelFormat only */
+enum ChoosePixelFlags {
+        PFD_DEPTH_DONTCARE = 0x20000000,
+        PFD_DOUBLEBUFFER_DONTCARE = 0x40000000,
+        PFD_STEREO_DONTCARE = 0x80000000,
+};
+
+enum {
+	SRCCOPY		= 0x00CC0020,
+	SRCPAINT	= 0x00EE0086,
+	SRCERASE	= 0x00440328,
+	BLACKNESS	= 0x00000042,
+	WHITENESS	= 0x00FF0062,
+};
+
+enum StockObjectIndex {
+	WHITE_BRUSH        = 0,
+	LTGRAY_BRUSH        = 1,
+	GRAY_BRUSH          = 2,
+	DKGRAY_BRUSH        = 3,
+	BLACK_BRUSH         = 4,
+	NULL_BRUSH          = 5,
+	//HOLLOW_BRUSH        = NULL_BRUSH,
+	WHITE_PEN           = 6,
+	BLACK_PEN           = 7,
+	NULL_PEN            = 8,
+	OEM_FIXED_FONT      = 10,
+	ANSI_FIXED_FONT     = 11,
+	ANSI_VAR_FONT       = 12,
+	SYSTEM_FONT         = 13,
+	DEVICE_DEFAULT_FONT = 14,
+	DEFAULT_PALETTE     = 15,
+	SYSTEM_FIXED_FONT   = 16,
+	DEFAULT_GUI_FONT    = 17,
+	DC_BRUSH            = 18,
+	DC_PEN              = 19,
+};
+
+]]
+
+
 -- GDI32
 ffi.cdef[[
 typedef struct {
-	void *	Handle;
+	HDC		Handle;
 } DeviceContext;
+
+typedef struct {
+	HDC		GDIHandle;
+	HGLRC	GLHandle;
+} GLContext;
 
 typedef struct {
 	void * Handle;
@@ -44,25 +129,88 @@ typedef struct _GLYPHMETRICSFLOAT {
   FLOAT      gmfCellIncY;
 } GLYPHMETRICSFLOAT, *LPGLYPHMETRICSFLOAT;
 
+typedef struct tagPIXELFORMATDESCRIPTOR {
+  WORD  nSize;
+  WORD  nVersion;
+  DWORD dwFlags;
+  BYTE  iPixelType;
+  BYTE  cColorBits;
+  BYTE  cRedBits;
+  BYTE  cRedShift;
+  BYTE  cGreenBits;
+  BYTE  cGreenShift;
+  BYTE  cBlueBits;
+  BYTE  cBlueShift;
+  BYTE  cAlphaBits;
+  BYTE  cAlphaShift;
+  BYTE  cAccumBits;
+  BYTE  cAccumRedBits;
+  BYTE  cAccumGreenBits;
+  BYTE  cAccumBlueBits;
+  BYTE  cAccumAlphaBits;
+  BYTE  cDepthBits;
+  BYTE  cStencilBits;
+  BYTE  cAuxBuffers;
+  BYTE  iLayerType;
+  BYTE  bReserved;
+  DWORD dwLayerMask;
+  DWORD dwVisibleMask;
+  DWORD dwDamageMask;
+} PIXELFORMATDESCRIPTOR;
+
+
+typedef struct tagLAYERPLANEDESCRIPTOR {
+  WORD  nSize;
+  WORD  nVersion;
+  DWORD dwFlags;
+  BYTE  iPixelType;
+  BYTE  cColorBits;
+  BYTE  cRedBits;
+  BYTE  cRedShift;
+  BYTE  cGreenBits;
+  BYTE  cGreenShift;
+  BYTE  cBlueBits;
+  BYTE  cBlueShift;
+  BYTE  cAlphaBits;
+  BYTE  cAlphaShift;
+  BYTE  cAccumBits;
+  BYTE  cAccumRedBits;
+  BYTE  cAccumGreenBits;
+  BYTE  cAccumBlueBits;
+  BYTE  cAccumAlphaBits;
+  BYTE  cDepthBits;
+  BYTE  cStencilBits;
+  BYTE  cAuxBuffers;
+  BYTE  iLayerPlane;
+  BYTE  bReserved;
+  COLORREF crTransparent;
+} LAYERPLANEDESCRIPTOR, *LPLAYERPLANEDESCRIPTOR;
+
 ]]
 
 
 ffi.cdef[[
 
 
-enum {
-	SRCCOPY = 0x00CC0020
-};
+
+// For OpenGL
+int ChoosePixelFormat(HDC  hdc, const PIXELFORMATDESCRIPTOR *  ppfd);
+BOOL SetPixelFormat(HDC hdc, int  iPixelFormat, const PIXELFORMATDESCRIPTOR *  ppfd);
+
 
 HDC CreateDCA(LPCSTR lpszDriver,LPCSTR lpszDevice,LPCSTR lpszOutput,const void * lpInitData);
 HDC CreateCompatibleDC(HDC hdc);
+HDC GetDC(HWND hWnd);
 
 int SaveDC(void *hdc);
 bool RestoreDC(void *hdc, int nSavedDC);
 
+COLORREF SetDCPenColor(HDC hdc, COLORREF crColor);
+
 
 HGDIOBJ SelectObject(HDC hdc, HGDIOBJ hgdiobj);
 int GetObjectA(HGDIOBJ hgdiobj, int cbBuffer, LPVOID lpvObject);
+HGDIOBJ GetStockObject(int fnObject);
 
 bool GdiFlush();
 
@@ -76,7 +224,7 @@ int LineTo(HDC hdc, int nXEnd, int nYEnd);
 bool Rectangle(HDC hdc, int left, int top, int right, int bottom);
 
 bool RoundRect(HDC hdc, int left, int top, int right, int bottom,
-            int width, int height);
+	int width, int height);
 
 
 BOOL Ellipse(HDC hdc,
@@ -84,9 +232,9 @@ BOOL Ellipse(HDC hdc,
   int nTopRect,
   int nRightRect,
   int nBottomRect);
-]]
 
-ffi.cdef[[
+
+
 int GetDIBits(HDC hdc,
 	HBITMAP hbmp,
 	UINT uStartScan,
@@ -119,6 +267,9 @@ int StretchDIBits(HDC hdc,
   UINT iUsage,
   DWORD dwRop);
 
+  // Text
+  BOOL TextOutA(HDC hdc, int nXStart, int nYStart, LPCSTR lpString, int cbString);
+
 HBITMAP CreateCompatibleBitmap(HDC hdc,
   int nWidth,
   int nHeight);
@@ -132,6 +283,66 @@ HBITMAP CreateDIBSection(HDC hdc,
 ]]
 
 
+-- Definitions for Wgl (Windows GL)
+ffi.cdef[[
+	// Callback functions
+	typedef int (__attribute__((__stdcall__)) *PROC)();
+
+	BOOL wglCopyContext(HGLRC hglrcSrc, HGLRC hglrcDst, UINT  mask);
+
+	HGLRC wglCreateContext(HDC hdc);
+
+	HGLRC wglCreateLayerContext(HDC hdc, int  iLayerPlane);
+
+	BOOL wglDeleteContext(HGLRC  hglrc);
+
+	BOOL wglDescribeLayerPlane(HDC hdc,int  iPixelFormat, int  iLayerPlane, UINT  nBytes, LPLAYERPLANEDESCRIPTOR plpd);
+
+	HGLRC wglGetCurrentContext(void);
+
+	HDC wglGetCurrentDC(void);
+
+	int wglGetLayerPaletteEntries(HDC  hdc, int  iLayerPlane, int  iStart,int  cEntries, const COLORREF *pcr);
+
+	PROC wglGetProcAddress(LPCSTR lpszProc);
+
+	BOOL wglMakeCurrent(HDC hdc, HGLRC  hglrc);
+
+	BOOL wglRealizeLayerPalette(HDC hdc, int iLayerPlane, BOOL bRealize);
+
+	int wglSetLayerPaletteEntries(HDC  hdc, int iLayerPlane,int  iStart,int  cEntries, const COLORREF *pcr);
+
+	BOOL wglShareLists(HGLRC  hglrc1, HGLRC  hglrc2);
+
+	BOOL wglSwapLayerBuffers(HDC hdc, UINT  fuPlanes);
+
+	BOOL wglUseFontBitmapsA(HDC  hdc, DWORD  first, DWORD  count, DWORD listBase);
+	BOOL wglUseFontBitmapsW(HDC  hdc, DWORD  first, DWORD  count, DWORD listBase);
+
+	BOOL wglUseFontOutlinesA(HDC  hdc,DWORD  first, DWORD  count, DWORD  listBase,  FLOAT  deviation, FLOAT  extrusion,int  format, LPGLYPHMETRICSFLOAT  lpgmf);
+	BOOL wglUseFontOutlinesW(HDC  hdc,DWORD  first, DWORD  count, DWORD  listBase,  FLOAT  deviation, FLOAT  extrusion,int  format, LPGLYPHMETRICSFLOAT  lpgmf);
+
+]]
+
+
+-- For Color
+-- 0x00bbggrr
+function RGB(byRed, byGreen, byBlue)
+	local acolor = lshift(byBlue,16) + lshift(byGreen,8) + byRed;
+	return acolor;
+end
+
+function GetRValue(c)
+	return band(c, 0xff)
+end
+
+function GetGValue(c)
+	return band(rshift(c,8), 0xff)
+end
+
+function GetBValue(c)
+	return band(rshift(c,16), 0xff)
+end
 
 --
 -- This function answers the question:
@@ -165,36 +376,80 @@ GDIContext_mt = {
 		TypeName = "DeviceContext",
 		Size = ffi.sizeof("DeviceContext"),
 
-		CreateDC = function(self, driver) return GDIContext(C.CreateDCA(driver, nil, nil, nil)) end,
+		CreateDC = function(self, driver)
+			return GDIContext(C.CreateDCA(driver, nil, nil, nil))
+		end,
 
-		CreateCompatibleDC = function(self) return GDIContext(C.CreateCompatibleDC(self.Handle)) end,
+		CreateCompatibleDC = function(self)
+			return GDIContext(C.CreateCompatibleDC(self.Handle))
+		end,
 
 		CreateForDefaultDisplay = function(self)
 			self.Handle = C.CreateDCA("DISPLAY", nil, nil, nil)
 
             return self;
-			end,
+		end,
 
 		CreateForMemory = function(self)
 			local displayDC = C.CreateDCA("DISPLAY", nil, nil, nil)
 			self.Handle = C.CreateCompatibleDC(displayDC)
 			return self
-			end,
+		end,
 
 		CreateCompatibleBitmap = function(self, width, height)
 				local bm = GDIBitmap(C.CreateCompatibleBitmap(self.Handle,width,height));
 				bm:Init(self.Handle)
 
 				return bm
-			end,
+		end,
 
 		SelectObject = function(self, gdiobj)
 				C.SelectObject(self.Handle, gdiobj.Handle)
-			end,
+		end,
 
+		-- Drawing routines
+		MoveTo = function(self, x, y)
+			local result = C.MoveToEx(self.Handle, x, y, nil);
+			return result
+		end,
+
+		LineTo = function(self, xend, yend)
+			local result = C.LineTo(self.Handle, xend, yend);
+			return result
+		end,
+
+		RoundRect = function(self, left, top, right, bottom, width, height)
+			return C.RoundRect(self.Handle, left, top, right, bottom, width, height);
+		end,
+
+		Text = function(self, txt, x, y)
+			x = x or 0
+			y = y or 0
+			return C.TextOutA(self.Handle, x, y, txt, string.len(txt));
+		end,
+
+		-- Device Context State
+		Flush = function(self)
+			return C.GdiFlush()
+		end,
+
+		SelectStockObject = function(self, objectIndex)
+            -- First get a handle on the object
+            local objHandle = C.GetStockObject(objectIndex);
+
+            --  Then select it into the device context
+            return C.SelectObject(self.Handle, objHandle);
+        end,
+
+		SetDCPenColor = function(self, color)
+			return C.SetDCPenColor(self.Handle, color)
+		end,
 	}
 }
 GDIContext = ffi.metatype("DeviceContext", GDIContext_mt)
+
+
+
 
 
 

@@ -11,7 +11,8 @@ local v3 = vec3(15, 30, 45)
 --print("Vec3: ",v3)
 
 local v4 = vec4(5, 10, 15, 0)
---print("Vec4: ", v4)
+print("Vec4: ", v4)
+print("Length: ", #v4)
 
 --v3.z = 60
 --print("Vec3: ", v3.z)
@@ -21,3 +22,4 @@ print("V5: ", v5)
 
 local v6 = -v5
 print("Negate V6: ", v6)
+print("Length: ", #v6)

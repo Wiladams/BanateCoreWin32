@@ -1,5 +1,8 @@
 local ffi = require "ffi"
 require "Win32Types"
+require "win_kernel32"
+local kernel32 = ffi.load("Kernel32")
+local user32 = ffi.load("User32")
 
 local C = ffi.C
 
@@ -229,10 +232,27 @@ typedef struct {
     HICON hIcon;
     HCURSOR hCursor;
     HBRUSH hbrBackground;
-    const LPCSTR lpszMenuName;
-    const LPCSTR lpszClassName;
+    LPCSTR lpszMenuName;
+    LPCSTR lpszClassName;
     HICON hIconSm;
 } WNDCLASSEXA, *PWNDCLASSEXA;
+
+typedef struct _WindowClass {
+	WNDPROC	MessageProc;
+	ATOM	Registration;
+	HINSTANCE	AppInstance;
+	char *	ClassName;
+	int X;
+	int Y;
+	int Width;
+	int Height;
+	char *Title;
+} User32WindowClass;
+
+
+typedef struct _User32Window {
+	HWND	WindowHandle;
+} User32Window;
 
 typedef struct tagCREATESTRUCT {
     LPVOID lpCreateParams;
@@ -260,10 +280,6 @@ typedef struct {
 
 ]]
 
-
-
-WNDCLASSA = ffi.typeof("WNDCLASSA")
-WNDCLASSEXA = ffi.typeof("WNDCLASSEXA")
 
 -- Windows functions
 ffi.cdef[[
@@ -392,44 +408,108 @@ int MessageBoxA(HWND hWnd,
 	);
 ]]
 
+User32Window = nil
+User32Window_mt = {
+	__index = {
+		Show = function(self)
+			user32.ShowWindow(self.WindowHandle, C.SW_SHOW)
+		end,
 
+		Update = function(self)
+			user32.UpdateWindow(self.WindowHandle)
+		end,
+	}
+}
+User32Window = ffi.metatype("User32Window", User32Window_mt)
 
+function User32WindowClass_MsgProc(hwnd, msg, wparam, lparam)
+print("User32WindowClass_MsgProc: ", msg)
 
---[[
+	local retValue = user32.DefWindowProcA(hwnd, msg, wparam, lparam)
 
-
-void* CreateEventA(SECURITY_ATTRIBUTES*, bool32 manualReset, bool32 initialState, const char* name);
-uint32_t MsgWaitForMultipleObjects(uint32_t count, void** handles, bool32 waitAll, uint32_t ms, uint32_t wakeMask);
-
---]]
-
-
-
---[[
--- Implicit conversion to a callback via function pointer argument.
-local count = 0
-
-function WindowCounter(hwnd, l)
-  count = count + 1
-  return true
+	return retValue;
 end
 
-while ffi.C.EnumWindows(WindowCounter, 0) do
-	print(count);
-end
+User32WindowClass = nil
+User32WindowClass_mt = {
+	__index = {
+		new = function(self, classname, msgproc, classStyle)
+			local appInstance = kernel32.GetModuleHandleA(nil)
+			msgproc = msgproc or User32WindowClass_MsgProc
+			classStyle = classStyle or bit.bor(C.CS_HREDRAW, C.CS_VREDRAW, C.CS_OWNDC);
 
-local cb = ffi.cast("WNDENUMPROC", WindowCounter)
+			self.AppInstance = appInstance
+			self.ClassName = ffi.cast("char *", classname)
+			self.MessageProc = msgproc
+
+			local winClass = ffi.new('WNDCLASSEXA', {
+				cbSize = ffi.sizeof("WNDCLASSEXA");
+				style = classStyle;
+				lpfnWndProc = self.MessageProc;
+				cbClsExtra = 0;
+				cbWndExtra = 0;
+				hInstance = self.AppInstance;
+				hIcon = nil;
+				hCursor = nil;
+				hbrBackground = nil;
+				lpszMenuName = nil;
+				lpszClassName = self.ClassName;
+				hIconSm = nil;
+			})
+
+			self.Registration = user32.RegisterClassExA(winClass)
+
+			if (self.Registration == 0) then
+				print("Registration error")
+				--print(C.GetLastError())
+			end
+
+			return self
+		end,
+
+		CreateWindow = function(self, title, x, y, width, height, windoStyle)
+			x = x or 10
+			y = y or 10
+			width = width or 320
+			height = height or 240
+			windowStyle = windowStyle or C.WS_OVERLAPPEDWINDOW
+
+			self.Title = ffi.cast("char *", title)
+
+			local dwExStyle =  bit.bor(C.WS_EX_APPWINDOW, C.WS_EX_WINDOWEDGE)
+
+			print("CreateWindow - Class Name: ", ffi.string(self.ClassName))
+
+			local win = ffi.new("User32Window")
+
+			local windowHandle = user32.CreateWindowExA(
+				0,
+				self.ClassName,
+				self.Title,
+				windowStyle,
+				x,
+				y,
+				width,
+				height,
+				nil,
+				nil,
+				self.AppInstance,
+				win)
+
+			if windowHandle == nil then
+				print("unable to create window")
+			else
+				win.WindowHandle = windowHandle
+			end
+
+			return win
+		end,
+	},
+}
+User32WindowClass = ffi.metatype("User32WindowClass", User32WindowClass_mt)
 
 
---local cb = ffi.cast("WNDENUMPROC", function(hwnd, l)
---	count = count + 1
---	return true
---	end)
 
-ffi.C.EnumWindows(cb,0)
 
-print(count);
 
-cb:free()
 
---]]

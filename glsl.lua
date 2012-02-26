@@ -59,10 +59,12 @@ typedef struct _bvec4 {
 
 
 ]]
--- Setting values
+
+
 -- GLSL allows the programmer to access values of a vector
 -- using multiple naming conventions
--- x,y,z,w - typical for coordinates
+--
+-- x, y, z, w - typical for coordinates
 -- r, g, b, a - typical for colors
 -- s, t, p, q - typical for texture access
 --
@@ -167,6 +169,13 @@ vec2_mt = {
 
 	__newindex = glsl_set_swizzler,
 
+	__len = function(self) return 2 end,
+
+	-- relational
+	__eq = function(a, b)
+		return a.d1 == b.d1 and a.d2 == b.d2
+	end,
+
 	__unm = function(a)
 		return vec2(-a.d1, -a.d2)
 	end,
@@ -190,6 +199,13 @@ vec3_mt = {
 	__index = glsl_get_swizzler,
 
 	__newindex = glsl_set_swizzler,
+
+	__len = function(self) return 3 end,
+
+	-- relational
+	__eq = function(a, b)
+		return a.d1 == b.d1 and a.d2 == b.d2  and a.d3 == b.d3
+	end,
 
 	__unm = function(a)
 		return vec3(-a.d1, -a.d2, -a.d3)
@@ -215,6 +231,14 @@ vec4_mt = {
 
 	__newindex = glsl_set_swizzler,
 
+	__len = function(self) return 4 end,
+
+	-- relational
+	__eq = function(a, b)
+		return a.d1 == b.d1 and a.d2 == b.d2  and a.d3 == b.d3 and a.d4 == b.d4
+	end,
+
+	-- Arithmetic
 	__unm = function(a)
 		return vec4(-a.d1, -a.d2, -a.d3, -a.d4)
 	end,

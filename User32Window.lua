@@ -13,6 +13,15 @@ require "win_kernel32"
 local user32 = ffi.load("User32")
 local kernel32 = ffi.load("Kernel32")
 
+ffi.cdef[[
+typedef struct _User32Window {
+	int x;
+	int y;
+	int width;
+	int height;
+} User32Window
+]]
+
 
 class.User32Window()
 

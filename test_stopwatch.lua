@@ -1,5 +1,8 @@
 -- test_stopwatch.lua
+local ffi = require "ffi"
+
 require "StopWatch"
+local kernel32 = ffi.load("kernel32")
 
 print("StopWatch.lua - TEST")
 local sw = StopWatch()

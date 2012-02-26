@@ -252,7 +252,7 @@ typedef struct _WindowClass {
 
 typedef struct _User32Window {
 	HWND	WindowHandle;
-} User32Window;
+} User32Window, *PUser32Window;
 
 typedef struct tagCREATESTRUCT {
     LPVOID lpCreateParams;
@@ -418,12 +418,41 @@ User32Window_mt = {
 		Update = function(self)
 			user32.UpdateWindow(self.WindowHandle)
 		end,
+
+		GetTitle = function(self)
+			local buf = ffi.new("char[?]", 256)
+			local lbuf = ffi.cast("intptr_t", buf)
+			if C.SendMessageA(self.WindowHandle, C.WM_GETTEXT, 255, lbuf) ~= 0 then
+				return ffi.string(buf)
+			end
+		end,
+
+		OnCreate = function(self)
+			print("User32Window:OnCreate")
+			return 0
+		end,
 	}
 }
 User32Window = ffi.metatype("User32Window", User32Window_mt)
 
+
+
+
 function User32WindowClass_MsgProc(hwnd, msg, wparam, lparam)
-print("User32WindowClass_MsgProc: ", msg)
+--print("User32WindowClass_MsgProc: ", msg)
+	if (msg == C.WM_CREATE) then
+		--print("WM_CREATE")
+
+		local crstruct = ffi.cast("LPCREATESTRUCTA", lparam)
+
+		--print(crstruct.lpCreateParams)
+		local win = ffi.cast("PUser32Window", crstruct.lpCreateParams)
+		return win:OnCreate()
+	elseif (msg == C.WM_DESTROY) then
+		--print("WM_DESTROY")
+		C.PostQuitMessage(0)
+		return 0
+	end
 
 	local retValue = user32.DefWindowProcA(hwnd, msg, wparam, lparam)
 
@@ -478,10 +507,11 @@ User32WindowClass_mt = {
 
 			local dwExStyle =  bit.bor(C.WS_EX_APPWINDOW, C.WS_EX_WINDOWEDGE)
 
-			print("CreateWindow - Class Name: ", ffi.string(self.ClassName))
+			--print("CreateWindow - Class Name: ", ffi.string(self.ClassName))
 
 			local win = ffi.new("User32Window")
-
+--print("win_user32 - win before CreateWindowEx")
+--			print(win)
 			local windowHandle = user32.CreateWindowExA(
 				0,
 				self.ClassName,

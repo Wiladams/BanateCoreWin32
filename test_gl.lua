@@ -93,8 +93,7 @@ local function main()
 	local sw, sh = ffi.new( "int[1]" ), ffi.new( "int[1]" )
 	local dx, dy
 
-	--test_gl();
-	test_wgl();
+	test_gl();
 
 
 	while glfw.glfwIsWindow(window) and glfw.glfwGetKey(window, glfw.GLFW_KEY_ESCAPE) ~= glfw.GLFW_PRESS

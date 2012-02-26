@@ -50,11 +50,13 @@ function GameWindow:_init(params)
 	self.Interval =1/ self.FrameRate
 
 	-- Interactor routines
+	self.MessageDelegate = params.MessageDelegate
+	self.OnFocusDelegate = params.OnFocusDelegate
+	self.OnTickDelegate = params.OnTickDelegate
+
 	self.KeyboardInteractor = params.KeyboardInteractor
 	self.MouseInteractor = params.MouseInteractor
 	self.GestureInteractor = params.GestureInteractor
-	self.OnFocusDelegate = params.OnFocusDelegate
-	self.OnTickDelegate = params.OnTickDelegate
 
 	self:Register(params)
 	self:CreateWindow(params)
@@ -69,7 +71,12 @@ function GameWindow:OnCreate()
 print("GameWindow:OnCreate")
 
 	self.GDIHandle = C.GetDC(self.WindowHandle)
+
+
 	self.GDIContext = GDIContext(self.GDIHandle)
+	self.GDIContext:UseDCPen()
+	self.GDIContext:UseDCBrush()
+
 	self.GLContext = GLContext():new(self.GDIHandle)
 	self.GLContext:Attach()
 
@@ -138,11 +145,21 @@ function WindowProc(hwnd, msg, wparam, lparam)
 		return user32.DefWindowProcA(hwnd, msg, wparam, lparam)
 	end
 --]]
+
+--[[
+	local result = 0
+
+	if (self.MessageDelegate) then
+		result = self.MessageDelegate(hwnd, msg, wparam, lparam)
+		return result
+	else
+--]]
 	if (msg == C.WM_DESTROY) then
 		return GameWindow.OnDestroy(msg)
 	end
 
 	return user32.DefWindowProcA(hwnd, msg, wparam, lparam);
+	--end
 end
 
 
@@ -152,7 +169,6 @@ function GameWindow:Register(params)
 	self.ClassName = params.ClassName
 
 	local classStyle = bit.bor(C.CS_HREDRAW, C.CS_VREDRAW, C.CS_OWNDC);
-	--local classStyle = 0
 
 	local aClass = ffi.new('WNDCLASSEXA', {
 		cbSize = ffi.sizeof("WNDCLASSEXA");
@@ -280,6 +296,8 @@ function Loop(win)
 	local lastTime = sw:Milliseconds()
 	local nextTime = lastTime + win.Interval * 1000
 
+	local dwFlags = bor(C.MWMO_ALERTABLE,C.MWMO_INPUTAVAILABLE)
+
 	while (win.IsRunning) do
 		while (user32.PeekMessageA(msg, nil, 0, 0, C.PM_REMOVE) ~= 0) do
 			user32.TranslateMessage(msg)
@@ -318,7 +336,6 @@ function Loop(win)
 		end
 
 		-- use an alertable wait
-		local dwFlags = bor(C.MWMO_ALERTABLE,C.MWMO_INPUTAVAILABLE)
 		C.MsgWaitForMultipleObjectsEx(handleCount, handles, timeleft, C.QS_ALLEVENTS, dwFlags)
 	end
 end

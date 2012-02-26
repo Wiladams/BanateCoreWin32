@@ -206,7 +206,7 @@ int SaveDC(void *hdc);
 bool RestoreDC(void *hdc, int nSavedDC);
 
 COLORREF SetDCPenColor(HDC hdc, COLORREF crColor);
-
+COLORREF SetDCBrushColor(HDC hdc, COLORREF crColor);
 
 HGDIOBJ SelectObject(HDC hdc, HGDIOBJ hgdiobj);
 int GetObjectA(HGDIOBJ hgdiobj, int cbBuffer, LPVOID lpvObject);
@@ -433,6 +433,7 @@ GDIContext_mt = {
 			return C.GdiFlush()
 		end,
 
+
 		SelectStockObject = function(self, objectIndex)
             -- First get a handle on the object
             local objHandle = C.GetStockObject(objectIndex);
@@ -440,6 +441,18 @@ GDIContext_mt = {
             --  Then select it into the device context
             return C.SelectObject(self.Handle, objHandle);
         end,
+
+		UseDCBrush = function(self)
+			self:SelectStockObject(C.DC_BRUSH)
+		end,
+
+		UseDCPen = function(self)
+			self:SelectStockObject(C.DC_PEN)
+		end,
+
+		SetDCBrushColor = function(self, color)
+			return C.SetDCBrushColor(self.Handle, color)
+		end,
 
 		SetDCPenColor = function(self, color)
 			return C.SetDCPenColor(self.Handle, color)

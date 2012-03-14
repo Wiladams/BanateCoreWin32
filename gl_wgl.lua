@@ -2,12 +2,13 @@ local ffi = require "ffi"
 require "Win32Types"
 require "win_gdi32"
 local gl    = require( "gl" )
+local wgl= ffi.load("opengl32")
 
 
 ffi.cdef[[
 
 	//void (*glExtGetShadersQCOM)(unsigned *shaders, int maxShaders, int *numShaders);
-	const char * (*wglGetExtensionsStringARB)(HDC hdc);
+	const char * (* wglGetExtensionsStringARB)(HDC hdc);
 	typedef const char * (* PFNWGLGETEXTENSIONSSTRINGARBPROC) (HDC hdc);
 
 ]]
@@ -38,3 +39,4 @@ typedef BOOL (WINAPI * PFNWGLCHOOSEPIXELFORMATARBPROC) (HDC hdc, const int *piAt
 ]]
 
 --]]
+

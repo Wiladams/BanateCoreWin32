@@ -13,7 +13,6 @@ local lib  = ffi_OpenGL_lib or libs[ ffi.os ][ ffi.arch ]
 
 local gl   = ffi.load( lib )
 
-require "Win32Types"
 
 -- Type declarations
 ffi.cdef[[

@@ -15,14 +15,14 @@ ffi.cdef[[
 /* pixel types */
 enum PFDPixelType
 {
-	RGBA = 0,
+	PFD_TYPE_RGBA = 0,
 	ColorIndex = 1
 }
 
     /* layer types */
 enum PFDLayerPlanes
 {
-    Main = 0,
+    PFD_MAIN_PLANE = 0,
     Overlay = 1,
     Underlay = (-1)
 }
@@ -30,12 +30,12 @@ enum PFDLayerPlanes
 
 /* PIXELFORMATDESCRIPTOR flags */
 enum PFDFlags {
-	DoubleBuffer = 0x00000001,
+	PFD_DOUBLEBUFFER = 0x00000001,
     Stereo = 0x00000002,
-	DrawToWindow = 0x00000004,
+	PFD_DRAW_TO_WINDOW = 0x00000004,
 	DrawToBitmap = 0x00000008,
 	SupportGDI = 0x00000010,
-	SupportOpenGL = 0x00000020,
+	PFD_SUPPORT_OPENGL = 0x00000020,
 	GenericFormat = 0x00000040,
 	NeedPalette = 0x00000080,
 	NeedSystemPalette = 0x00000100,
@@ -95,10 +95,6 @@ typedef struct {
 	HDC		Handle;
 } DeviceContext;
 
-typedef struct {
-	HDC		GDIHandle;
-	HGLRC	GLHandle;
-} GLContext;
 
 typedef struct {
 	void * Handle;
@@ -194,8 +190,16 @@ ffi.cdef[[
 
 
 // For OpenGL
+typedef int  (* PFNCHOOSEPIXELFORMAT)(HDC  hdc, const PIXELFORMATDESCRIPTOR *  ppfd);
+typedef int  (* PFNDESCRIBEPIXELFORMAT)(HDC hdc, int iPixelFormat, unsigned int nBytes, PIXELFORMATDESCRIPTOR *  ppfd);
+typedef BOOL (* PFNSETPIXELFORMAT)(HDC hdc, int  iPixelFormat, const PIXELFORMATDESCRIPTOR *  ppfd);
+typedef int  (* PFNSWAPBUFFERS)(HDC hdc);
+
+
 int ChoosePixelFormat(HDC  hdc, const PIXELFORMATDESCRIPTOR *  ppfd);
+int DescribePixelFormat(HDC hdc, int iPixelFormat, unsigned int nBytes, PIXELFORMATDESCRIPTOR *  ppfd);
 BOOL SetPixelFormat(HDC hdc, int  iPixelFormat, const PIXELFORMATDESCRIPTOR *  ppfd);
+int SwapBuffers(HDC hdc);
 
 
 HDC CreateDCA(LPCSTR lpszDriver,LPCSTR lpszDevice,LPCSTR lpszOutput,const void * lpInitData);
@@ -214,6 +218,7 @@ HGDIOBJ GetStockObject(int fnObject);
 
 bool GdiFlush();
 
+// Drawing
 uint32_t SetPixel(HDC hdc, int x, int y, uint32_t color);
 BOOL SetPixelV(HDC hdc, int X, int Y, uint32_t crColor);
 
@@ -283,46 +288,7 @@ HBITMAP CreateDIBSection(HDC hdc,
 ]]
 
 
--- Definitions for Wgl (Windows GL)
-ffi.cdef[[
-	// Callback functions
-	typedef int (__attribute__((__stdcall__)) *PROC)();
 
-	BOOL wglCopyContext(HGLRC hglrcSrc, HGLRC hglrcDst, UINT  mask);
-
-	HGLRC wglCreateContext(HDC hdc);
-
-	HGLRC wglCreateLayerContext(HDC hdc, int  iLayerPlane);
-
-	BOOL wglDeleteContext(HGLRC  hglrc);
-
-	BOOL wglDescribeLayerPlane(HDC hdc,int  iPixelFormat, int  iLayerPlane, UINT  nBytes, LPLAYERPLANEDESCRIPTOR plpd);
-
-	HGLRC wglGetCurrentContext(void);
-
-	HDC wglGetCurrentDC(void);
-
-	int wglGetLayerPaletteEntries(HDC  hdc, int  iLayerPlane, int  iStart,int  cEntries, const COLORREF *pcr);
-
-	PROC wglGetProcAddress(LPCSTR lpszProc);
-
-	BOOL wglMakeCurrent(HDC hdc, HGLRC  hglrc);
-
-	BOOL wglRealizeLayerPalette(HDC hdc, int iLayerPlane, BOOL bRealize);
-
-	int wglSetLayerPaletteEntries(HDC  hdc, int iLayerPlane,int  iStart,int  cEntries, const COLORREF *pcr);
-
-	BOOL wglShareLists(HGLRC  hglrc1, HGLRC  hglrc2);
-
-	BOOL wglSwapLayerBuffers(HDC hdc, UINT  fuPlanes);
-
-	BOOL wglUseFontBitmapsA(HDC  hdc, DWORD  first, DWORD  count, DWORD listBase);
-	BOOL wglUseFontBitmapsW(HDC  hdc, DWORD  first, DWORD  count, DWORD listBase);
-
-	BOOL wglUseFontOutlinesA(HDC  hdc,DWORD  first, DWORD  count, DWORD  listBase,  FLOAT  deviation, FLOAT  extrusion,int  format, LPGLYPHMETRICSFLOAT  lpgmf);
-	BOOL wglUseFontOutlinesW(HDC  hdc,DWORD  first, DWORD  count, DWORD  listBase,  FLOAT  deviation, FLOAT  extrusion,int  format, LPGLYPHMETRICSFLOAT  lpgmf);
-
-]]
 
 
 -- For Color
@@ -392,8 +358,7 @@ GDIContext_mt = {
 
 		CreateForMemory = function(self)
 			local displayDC = C.CreateDCA("DISPLAY", nil, nil, nil)
-			self.Handle = C.CreateCompatibleDC(displayDC)
-			return self
+			return GDIContext(C.CreateCompatibleDC(displayDC))
 		end,
 
 		CreateCompatibleBitmap = function(self, width, height)
@@ -539,14 +504,14 @@ GDIDIBSection_mt = {
 				pixelP,
 				nil,
 				0);
-print("GDIDIBSection Handle: ", self.Handle)
+--print("GDIDIBSection Handle: ", self.Handle)
 			--self.Pixels = ffi.cast("Ppixel_BGRA_b", pixelP[0])
 			self.Pixels = pixelP[0]
 
 			-- Create a memory device context
 			self.hDC = GDIContext():CreateForMemory()
 			local selected = C.SelectObject(self.hDC.Handle, self.Handle)
-print("Selected: ", selected)
+--print("Selected: ", selected)
 			--print("self.Pixels after cast: ", self.Pixels)
 
 			return self
@@ -586,7 +551,7 @@ function StretchBlt(winDC, img, XDest, YDest,DestWidth,DestHeight)
 	bmInfo.bmiHeader.biWidth = img.Width;
     bmInfo.bmiHeader.biHeight = img.Height;
     bmInfo.bmiHeader.biPlanes = 1;
-    bmInfo.bmiHeader.biBitCount = img.BitsPerPixel;
+    bmInfo.bmiHeader.biBitCount = img.BitsPerElement;
     bmInfo.bmiHeader.biClrImportant = 0;
     bmInfo.bmiHeader.biClrUsed = 0;
     bmInfo.bmiHeader.biCompression = 0;
@@ -594,7 +559,7 @@ function StretchBlt(winDC, img, XDest, YDest,DestWidth,DestHeight)
 	ffi.C.StretchDIBits(winDC,
 		XDest,YDest,DestWidth,DestHeight,
 		0,0,img.Width, img.Height,
-		img.Pixels,
+		img.Data,
 		bmInfo,
 		0,
 		SRCCOPY);

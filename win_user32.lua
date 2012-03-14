@@ -47,7 +47,7 @@ enum {
 enum {
 	WM_CREATE 			= 0x0001,
 	WM_DESTROY 			= 0x0002,
-	WM_ACTIVATE = 0x0006,
+	WM_ACTIVATE 		= 0x0006,
 	WM_SETFOCUS			= 0x0007,
 	WM_KILLFOCUS		= 0x0008,
 	WM_ENABLE			= 0x000A,
@@ -284,7 +284,6 @@ typedef struct {
 -- Windows functions
 ffi.cdef[[
 
-
 DWORD MsgWaitForMultipleObjects(
 	DWORD nCount,
 	const HANDLE* pHandles,
@@ -348,6 +347,7 @@ HICON LoadIconA(HINSTANCE hInstance, LPCSTR lpIconName);
 
 HCURSOR LoadCursorA(HINSTANCE hInstance, LPCSTR lpCursorName);
 
+int GetClientRect(HWND hWnd, RECT *rect);
 
 // PostMessage
 BOOL PostMessage(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);

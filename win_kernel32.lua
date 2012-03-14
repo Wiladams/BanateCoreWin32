@@ -47,21 +47,33 @@ function GetPerformanceCounter()
 	return tonumber(anum[0])
 end
 
+function GetProcAddress(library, funcname)
+	ffi.load(library)
+	local paddr = C.GetProcAddress(C.GetModuleHandleA(library), funcname)
+	return paddr
+end
+
 --[[
 print("win_kernel32.lua - TEST")
 
-local freq = GetPerformanceFrequency()
-local count = GetPerformanceCounter()
+function test_PerformanceCounter()
 
-print(freq)
-print(count)
+	local freq = GetPerformanceFrequency()
+	local count = GetPerformanceCounter()
 
-print(count/freq)
+	print(freq)
+	print(count)
 
---local paddr = C.GetProcAddress(C.GetModuleHandleA("kernel32"), "GetProcAddress")
+	print(count/freq)
+end
 
---print("Proc Address: ", paddr)
+function test_GetProcAddress(library, funcname)
+	ffi.load(library)
+	local paddr = C.GetProcAddress(C.GetModuleHandleA(library), funcname)
+	print("Proc Address: ", library, funcname, paddr)
+end
 
-
-
+test_GetProcAddress("kernel32", "GetProcAddress")
+test_GetProcAddress("opengl32", "wglGetProcAddress")
+test_GetProcAddress("opengl32", "wglGetExtensionsStringARB")
 --]]

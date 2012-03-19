@@ -58,11 +58,6 @@ function randomline(graphPort)
 	
 	local x2 = math.random(0,graphPort.Width-1)
 	local y2 = math.random(0, graphPort.Height-1)
-
-	--if x2<x1 then
-	--	x1,x2 = swap(x1,x2)
-	--	y1,y2 = swap(y1,y2)
-	--end
 	
 	--print(x1,y1,x2,y2)
 	
@@ -86,18 +81,36 @@ function randomrect(graphPort)
 	graphPort:FillRectangle(x,y,width, height, color)
 end
 
+function randomtriangle(graphPort)
+	local x1 = math.random(0,graphPort.Width-1)
+	local y1 = math.random(0, graphPort.Height-1)
+	
+	local x2 = math.random(0,graphPort.Width-1)
+	local y2 = math.random(0, graphPort.Height-1)
+
+	local x3 = math.random(0,graphPort.Width-1)
+	local y3 = math.random(0, graphPort.Height-1)
+
+	local r,g,b = randomColor()
+	local color = PixelBGRA(b,g,r,255)
+
+	graphPort:FillTriangle(x1, y1, x2, y2, x3, y3, color)
+	
+end
+
 function drawImage(appwin, view)
 	local graphPort = ArrayRenderer(view)
 	
 	-- start with white background
 	--graphPort:FillRectangle(0,0,graphPort.Width,graphPort.Height, PixelBGRA(255,255,255,255))
 	
-	for i=1,appwin.FrameRate do
+	for i=1,1 do
 		randomrect(graphPort)
 	end
 	
-	--local black = PixelBGRA(0,0,0,255)
-	--graphPort:Line(10, 10, graphPort.Width-1-10, 20, black)
+	for i=1,1 do
+		randomtriangle(graphPort)
+	end
 
 	-- draw some random lines
 	for i=1,appwin.FrameRate do
@@ -180,7 +193,7 @@ local function main()
 
 	local appwin = GameWindow({
 		OnTickDelegate = ontick,
-		FrameRate = 20,
+		FrameRate = 10,
 		Extent = {640,480},
 		})
 

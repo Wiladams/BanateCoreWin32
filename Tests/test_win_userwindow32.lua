@@ -1,3 +1,7 @@
+-- Put this at the top of any test
+local ppath = package.path..';..\\?.lua;..\\core\\?.lua;'
+package.path = ppath;
+
 -- test_win_userwindow32.lua
 
 local ffi = require "ffi"

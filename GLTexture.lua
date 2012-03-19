@@ -107,7 +107,7 @@ function Texture.CopyPixelBuffer(self, pixelaccessor)
 	gl.glEnable(gl.GL_TEXTURE_2D)            -- Enable Texture Mapping
 	self:MakeCurrent()
 
-	gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT, pixelaccessor.Alignment)
+	gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT,  Texture.Defaults.UnpackAlignment)
 
 	gl.glTexSubImage2D (gl.GL_TEXTURE_2D,
 		0,	-- level

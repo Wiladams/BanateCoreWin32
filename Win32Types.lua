@@ -10,6 +10,7 @@ local rshift = bit.rshift
 ffi.cdef[[
 typedef void *			PVOID;
 typedef PVOID			HANDLE;
+typedef HANDLE			LPHANDLE;
 typedef intptr_t		LONG_PTR;
 //typedef HANDLE		LONG_PTR;
 typedef HANDLE			UINT_PTR;
@@ -32,6 +33,7 @@ typedef long			LONG;
 typedef signed int		LONG32;
 typedef __int64			LONGLONG;
 
+typedef unsigned char	BCHAR;
 typedef unsigned char	UCHAR;
 typedef unsigned int	UINT;
 typedef unsigned int	UINT32;
@@ -41,6 +43,9 @@ typedef unsigned short	USHORT;
 
 // Some pointer types
 typedef DWORD *			LPCOLORREF;
+
+typedef char *			LPSTR;
+typedef LPSTR			LPTSTR;
 typedef const char *	LPCSTR;
 typedef LPCSTR			LPCTSTR;
 typedef const void *	LPCVOID;
@@ -102,6 +107,8 @@ typedef HANDLE			HWINSTA;
 typedef HANDLE			HWND;
 
 
+typedef DWORD ACCESS_MASK;
+typedef ACCESS_MASK* PACCESS_MASK;
 
 
 typedef LONG FXPT16DOT16, *LPFXPT16DOT16;
@@ -118,7 +125,6 @@ typedef union _LARGE_INTEGER {
 	} u;
 	LONGLONG QuadPart;
 } LARGE_INTEGER,  *PLARGE_INTEGER;
-
 
 ]]
 
@@ -150,10 +156,32 @@ typedef struct tagPOINT {
   int32_t y;
 } POINT, *PPOINT;
 
-typedef struct tagRECT {
-	int32_t left, top, right, bottom;
-	} RECT;
+typedef struct _POINTL {
+  LONG x;
+  LONG y;
+} POINTL, *PPOINTL;
 
+typedef struct tagRECT {
+	int32_t left;
+	int32_t top;
+	int32_t right;
+	int32_t bottom;
+} RECT, *PRECT;
+]]
+
+RECT = nil
+RECT_mt = {
+	__tostring = function(self)
+		local str = string.format("%d %d %d %d", self.left, self.top, self.right, self.bottom)
+		return str
+	end,
+
+	__index = {
+	}
+}
+RECT = ffi.metatype("RECT", RECT_mt)
+
+ffi.cdef[[
 typedef struct _TRIVERTEX {
   LONG        x;
   LONG        y;

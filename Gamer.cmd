@@ -1,1 +1,0 @@
-luajit.exe test_GameWindow.lua

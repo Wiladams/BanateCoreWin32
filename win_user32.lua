@@ -193,6 +193,100 @@ enum {
 	HWND_NOTOPMOST  = (-2),
 	HWND_MESSAGE = (-3),
 };
+
+// Used for GetSystemMetrics
+enum SystemMetric {
+        CXSCREEN = 0,
+        CYSCREEN = 1,
+        CXVSCROLL = 2,
+        CYHSCROLL = 3,
+        CYCAPTION = 4,
+        CXBORDER = 5,
+        CYBORDER = 6,
+        CXDLGFRAME = 7,
+        CXFIXEDFRAME = 7,
+        CYDLGFRAME = 8,
+        CYFIXEDFRAME = 8,
+        CYVTHUMB = 9,
+        CXHTHUMB = 10,
+        CXICON = 11,
+        CYICON = 12,
+        CXCURSOR = 13,
+        CYCURSOR = 14,
+        CYMENU = 15,
+        CXFULLSCREEN = 16,
+        CYFULLSCREEN = 17,
+        CYKANJIWINDOW = 18,
+        MOUSEPRESENT = 19,
+        CYVSCROLL = 20,
+        CXHSCROLL = 21,
+        DEBUG = 22,
+        SWAPBUTTON = 23,
+        RESERVED1 = 24,
+        RESERVED2 = 25,
+        RESERVED3 = 26,
+        RESERVED4 = 27,
+        CXMIN = 28,
+        CYMIN = 29,
+        CXSIZE = 30,
+        CYSIZE = 31,
+        CXSIZEFRAME = 32,
+        CXFRAME = 32,
+        CYFRAME = 33,
+        CYSIZEFRAME = 33,
+        CXMINTRACK = 34,
+        CYMINTRACK = 35,
+        CXDOUBLECLK = 36,
+        CYDOUBLECLK = 37,
+        CXICONSPACING = 38,
+        CYICONSPACING = 39,
+        MENUDROPALIGNMENT = 40,
+        PENWINDOWS = 41,
+        DBCSENABLED = 42,
+        CMOUSEBUTTONS = 43,
+        SECURE = 44,
+        CXEDGE = 45,
+        CYEDGE = 46,
+        CXMINSPACING = 47,
+        CYMINSPACING = 48,
+        CXSMICON = 49,
+        CYSMICON = 50,
+        CYSMCAPTION = 51,
+        CXSMSIZE = 52,
+        CYSMSIZE = 53,
+        CXMENUSIZE = 54,
+        CYMENUSIZE = 55,
+        ARRANGE = 56,
+        CXMINIMIZED = 57,
+        CYMINIMIZED = 58,
+        CXMAXTRACK = 59,
+        CYMAXTRACK = 60,
+        CXMAXIMIZED = 61,
+        CYMAXIMIZED = 62,
+        NETWORK = 63,
+        CLEANBOOT = 67,
+        CXDRAG = 68,
+        CYDRAG = 69,
+        SHOWSOUNDS = 70,
+        CXMENUCHECK = 71,
+        CYMENUCHECK = 72,
+        SLOWMACHINE = 73,
+        MIDEASTENABLED = 74,
+        MOUSEWHEELPRESENT = 75,
+        XVIRTUALSCREEN = 76,
+        YVIRTUALSCREEN = 77,
+        CXVIRTUALSCREEN = 78,
+        CYVIRTUALSCREEN = 79,
+        CMONITORS = 80,
+        SAMEDISPLAYFORMAT = 81,
+        CMETRICS = 83,
+    };
+
+
+enum {
+	CCHDEVICENAME = 32,
+	CCHFORMNAME = 32,
+};
 ]]
 
 -- WINDOW CONSTRUCTION
@@ -276,6 +370,59 @@ typedef struct {
     POINT ptMinTrackSize;
     POINT ptMaxTrackSize;
 } MINMAXINFO, *PMINMAXINFO;
+
+
+
+
+
+typedef struct _devicemode {
+  BCHAR  dmDeviceName[CCHDEVICENAME];
+  WORD   dmSpecVersion;
+  WORD   dmDriverVersion;
+  WORD   dmSize;
+  WORD   dmDriverExtra;
+  DWORD  dmFields;
+  union {
+    struct {
+      short dmOrientation;
+      short dmPaperSize;
+      short dmPaperLength;
+      short dmPaperWidth;
+      short dmScale;
+      short dmCopies;
+      short dmDefaultSource;
+      short dmPrintQuality;
+    };
+    POINTL dmPosition;
+    DWORD  dmDisplayOrientation;
+    DWORD  dmDisplayFixedOutput;
+  };
+
+  short  dmColor;
+  short  dmDuplex;
+  short  dmYResolution;
+  short  dmTTOption;
+  short  dmCollate;
+  BYTE  dmFormName[CCHFORMNAME];
+  WORD  dmLogPixels;
+  DWORD  dmBitsPerPel;
+  DWORD  dmPelsWidth;
+  DWORD  dmPelsHeight;
+  union {
+    DWORD  dmDisplayFlags;
+    DWORD  dmNup;
+  };
+  DWORD  dmDisplayFrequency;
+  DWORD  dmICMMethod;
+  DWORD  dmICMIntent;
+  DWORD  dmMediaType;
+  DWORD  dmDitherType;
+  DWORD  dmReserved1;
+  DWORD  dmReserved2;
+  DWORD  dmPanningWidth;
+  DWORD  dmPanningHeight;
+} DEVMODE, *PDEVMODE;
+
 
 
 ]]
@@ -382,6 +529,10 @@ BOOL PeekMessageA(PMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax,
 BOOL WaitMessage(void);
 ]]
 
+-- System related calls
+ffi.cdef[[
+int GetSystemMetrics(int nIndex);
+]]
 
 
 -- WINDOW DRAWING
@@ -394,7 +545,8 @@ BOOL InvalidateRect(HWND hWnd, const RECT* lpRect, BOOL bErase);
 
 uint32_t GetLastError();
 
-typedef BOOL (__stdcall *WNDENUMPROC)(HWND hwnd, LPARAM l);
+typedef BOOL (*WNDENUMPROC)(HWND hwnd, LPARAM l);
+
 int EnumWindows(WNDENUMPROC func, LPARAM l);
 
 HWND GetForegroundWindow(void);
@@ -407,6 +559,8 @@ int MessageBoxA(HWND hWnd,
 		UINT uType
 	);
 ]]
+
+
 
 User32Window = nil
 User32Window_mt = {

@@ -1,9 +1,20 @@
+--[[
+	This file represents an interface to the WinSock2
+	networking interfaces of the Windows OS.  The functions
+	can be found in the .dll:
+		ws2_32.dll
+
+
+--]]
+
 -- ws2_32.dll
 local ffi = require "ffi"
 local bit = require "bit"
 local lshift = bit.lshift
 local rshift = bit.rshift
+local band = bit.band
 local bor = bit.bor
+local bswap = bit.bswap
 
 require "Win32Types"
 
@@ -14,8 +25,13 @@ typedef unsigned int    u_int;
 typedef unsigned long   u_long;
 typedef unsigned __int64 u_int64;
 
-typedef UINT_PTR        SOCKET;
+typedef UINT_PTR	SOCKET;
+
+typedef USHORT 		ADDRESS_FAMILY;
+
 ]]
+
+INVALID_SOCKET = ffi.new("SOCKET", -1)
 
 ffi.cdef[[
 /*
@@ -23,7 +39,7 @@ ffi.cdef[[
  * SOCKET type is unsigned.
  */
 enum {
-	INVALID_SOCKET  = ~0,
+//	INVALID_SOCKET  = ~0,
 	SOCKET_ERROR =  -1,
 };
 
@@ -272,6 +288,105 @@ WSASYS_STATUS_LEN  =     128,
 };
 ]]
 
+-- Basic socket definitions
+--[[
+#define s_addr  S_un.S_addr /* can be used for most tcp & ip code */
+#define s_host  S_un.S_un_b.s_b2    // host on imp
+#define s_net   S_un.S_un_b.s_b1    // network
+#define s_imp   S_un.S_un_w.s_w2    // imp
+#define s_impno S_un.S_un_b.s_b4    // imp #
+#define s_lh    S_un.S_un_b.s_b3    // logical host
+--]]
+
+ffi.cdef[[
+typedef struct in_addr {
+	union {
+		struct {
+			UCHAR s_b1,s_b2,s_b3,s_b4;
+			} S_un_b;
+		struct {
+			USHORT s_w1,s_w2;
+			} S_un_w;
+		ULONG S_addr;
+	} S_un;
+} IN_ADDR, *PIN_ADDR, *LPIN_ADDR;
+]]
+
+ffi.cdef[[
+struct sockaddr {
+	u_short  sa_family;
+
+	char    sa_data[14];
+} SOCKADDR, *PSOCKADDR, *LPSOCKADDR;
+
+
+typedef struct sockaddr_in {
+    short   sin_family;
+
+    USHORT sin_port;
+    IN_ADDR sin_addr;
+    CHAR sin_zero[8];
+} SOCKADDR_IN, *PSOCKADDR_IN;
+]]
+
+
+ffi.cdef[[
+//
+// IPv6 Internet address (RFC 2553)
+// This is an 'on-wire' format structure.
+//
+typedef struct in6_addr {
+    union {
+        UCHAR       Byte[16];
+        USHORT      Word[8];
+    } u;
+} IN6_ADDR, *PIN6_ADDR, *LPIN6_ADDR;
+
+struct sockaddr_in6 {
+        short   sin6_family;
+        u_short sin6_port;
+        u_long  sin6_flowinfo;
+        struct  in6_addr sin6_addr;
+        u_long  sin6_scope_id;
+};
+
+typedef struct sockaddr_in6 SOCKADDR_IN6;
+typedef struct sockaddr_in6 *PSOCKADDR_IN6;
+typedef struct sockaddr_in6 *LPSOCKADDR_IN6;
+
+
+/*
+typedef struct sockaddr_storage {
+	short ss_family;
+	char __ss_pad1[_SS_PAD1SIZE];
+	__int64 __ss_align;
+	char __ss_pad2[_SS_PAD2SIZE];
+} SOCKADDR_STORAGE,  *PSOCKADDR_STORAGE;
+*/
+]]
+
+
+ffi.cdef[[
+typedef struct hostent {
+	char * h_name;
+	char ** h_aliases;
+	short h_addrtype;
+	short h_length;
+	char ** h_addr_list;
+} HOSTENT,  *PHOSTENT,  *LPHOSTENT;
+
+typedef struct addrinfo {
+	int ai_flags;
+	int ai_family;
+	int ai_socktype;
+	int ai_protocol;
+	size_t ai_addrlen;
+	char* ai_canonname;
+	struct sockaddr* ai_addr;
+	struct addrinfo* ai_next;
+} ADDRINFOA,  *PADDRINFOA;
+]]
+
 -- Structure Definitions
 ffi.cdef[[
 typedef DWORD                   WSAEVENT, *LPWSAEVENT;
@@ -366,6 +481,40 @@ typedef struct _QualityOfService {
 	FLOWSPEC ReceivingFlowspec;
 	WSABUF ProviderSpecific;
 } QOS,  *LPQOS;
+
+enum {
+	MAX_PROTOCOL_CHAIN = 7,
+	WSAPROTOCOL_LEN  = 255,
+};
+
+typedef struct _WSAPROTOCOLCHAIN {
+	int ChainLen;
+	DWORD ChainEntries[MAX_PROTOCOL_CHAIN];
+} WSAPROTOCOLCHAIN,  *LPWSAPROTOCOLCHAIN;
+
+
+typedef struct _WSAPROTOCOL_INFO {
+	DWORD dwServiceFlags1;
+	DWORD dwServiceFlags2;
+	DWORD dwServiceFlags3;
+	DWORD dwServiceFlags4;
+	DWORD dwProviderFlags;
+	GUID ProviderId;
+	DWORD dwCatalogEntryId;
+	WSAPROTOCOLCHAIN ProtocolChain;
+	int iVersion;
+	int iAddressFamily;
+	int iMaxSockAddr;
+	int iMinSockAddr;
+	int iSocketType;
+	int iProtocol;
+	int iProtocolMaxOffset;
+	int iNetworkByteOrder;
+	int iSecurityScheme;
+	DWORD dwMessageSize;
+	DWORD dwProviderReserved;
+	TCHAR szProtocol[WSAPROTOCOL_LEN+1];
+} WSAPROTOCOL_INFO,  *LPWSAPROTOCOL_INFO;
 ]]
 
 
@@ -377,24 +526,120 @@ typedef int (* LPCONDITIONPROC)(
     LPQOS lpGQOS,
     LPWSABUF lpCalleeId,
     LPWSABUF lpCalleeData,
-    GROUP * g,
+    int * g,
     DWORD_PTR dwCallbackData
     );
 
-typedef
-void
-(* LPWSAOVERLAPPED_COMPLETION_ROUTINE)(
-    IN DWORD dwError,
-    IN DWORD cbTransferred,
-    IN LPWSAOVERLAPPED lpOverlapped,
-    IN DWORD dwFlags
+typedef void (* LPWSAOVERLAPPED_COMPLETION_ROUTINE)(
+    DWORD dwError,
+    DWORD cbTransferred,
+    LPWSAOVERLAPPED lpOverlapped,
+    DWORD dwFlags
     );
 ]]
 
+-- Berkeley Sockets calls
+ffi.cdef[[
+u_long	htonl(u_long hostlong);
+u_short htons(u_short hostshort);
+u_short ntohs(u_short netshort);
+u_long	ntohl(u_long netlong);
 
+SOCKET socket(int af, int type, int protocol);
+
+SOCKET accept(SOCKET s,struct sockaddr* addr,int* addrlen);
+
+int bind(SOCKET s, const struct sockaddr* name, int namelen);
+
+int connect(SOCKET s, const struct sockaddr* name, int namelen);
+
+int getsockname(SOCKET s, struct sockaddr* name, int* namelen);
+
+int getsockopt(SOCKET s, int level, int optname, char* optval,int* optlen);
+
+int ioctlsocket(SOCKET s, long cmd, u_long* argp);
+
+int listen(SOCKET s, int backlog);
+
+int recv(SOCKET s, char* buf, int len, int flags);
+
+int recvfrom(SOCKET s, char* buf, int len, int flags, struct sockaddr* from, int* fromlen);
+
+int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, const struct timeval* timeout);
+
+int send(SOCKET s, const char* buf, int len, int flags);
+
+int sendto(SOCKET s, const char* buf, int len, int flags, const struct sockaddr* to, int tolen);
+
+int setsockopt(SOCKET s, int level, int optname, const char* optval, int optlen);
+
+int shutdown(SOCKET s, int how);
+
+
+
+]]
+
+ffi.cdef[[
+enum {
+	INADDR_ANY             = (ULONG)0x00000000,
+	INADDR_LOOPBACK        = 0x7f000001,
+	INADDR_BROADCAST       = (ULONG)0xffffffff,
+	INADDR_NONE            = 0xffffffff,
+}
+
+//
+//  Flags used in "hints" argument to getaddrinfo()
+//      - AI_ADDRCONFIG is supported starting with Vista
+//      - default is AI_ADDRCONFIG ON whether the flag is set or not
+//        because the performance penalty in not having ADDRCONFIG in
+//        the multi-protocol stack environment is severe;
+//        this defaulting may be disabled by specifying the AI_ALL flag,
+//        in that case AI_ADDRCONFIG must be EXPLICITLY specified to
+//        enable ADDRCONFIG behavior
+//
+
+enum {
+AI_PASSIVE                  =0x00000001,  // Socket address will be used in bind() call
+AI_CANONNAME                =0x00000002,  // Return canonical name in first ai_canonname
+AI_NUMERICHOST              =0x00000004,  // Nodename must be a numeric address string
+AI_NUMERICSERV              =0x00000008,  // Servicename must be a numeric port number
+
+AI_ALL                      =0x00000100,  // Query both IP6 and IP4 with AI_V4MAPPED
+AI_ADDRCONFIG               =0x00000400,  // Resolution only if global address configured
+AI_V4MAPPED                 =0x00000800,  // On v6 failure, query v4 and convert to V4MAPPED format
+
+AI_NON_AUTHORITATIVE        =0x00004000,  // LUP_NON_AUTHORITATIVE
+AI_SECURE                   =0x00008000,  // LUP_SECURE
+AI_RETURN_PREFERRED_NAMES   =0x00010000,  // LUP_RETURN_PREFERRED_NAMES
+
+AI_FQDN                     =0x00020000,  // Return the FQDN in ai_canonname
+AI_FILESERVER               =0x00040000,  // Resolving fileserver name resolution
+}
+
+unsigned long inet_addr(const char* cp);
+char* inet_ntoa(struct   in_addr in);
+
+int gethostname(char* name, int namelen);
+
+struct hostent* gethostbyaddr(const char* addr,int len,int type);
+struct hostent* gethostbyname(const char* name);
+
+int GetNameInfoA(const struct sockaddr * sa, DWORD salen, char * host, DWORD hostlen, char * serv,DWORD servlen,int flags);
+//int GetAddrInfoA(const char* nodename,const char* servname,const struct addrinfo* hints,struct addrinfo** res);
+int getaddrinfo(const char* nodename,const char* servname,const struct addrinfo* hints,struct addrinfo* res);
+
+]]
 
 function MAKEWORD(low,high)
 	return bor(low , lshift(high , 8))
+end
+
+function LOWBYTE(word)
+	return band(word, 0xff)
+end
+
+function HIGHBYTE(word)
+	return band(rshift(word,8), 0xff)
 end
 
 --[[
@@ -441,9 +686,57 @@ function FD_ISSET(fd, set)
 end
 --]]
 
----[[
-print("win_socket.lua - TEST")
+local wsadata_typename
 
-local avalue = MAKEWORD(5,7)
-print(string.format("0x%x", avalue))
---]]
+if ffi.abi("64bit") then
+	wsadata_typename = "WSADATA64"
+
+	ffi.cdef[[
+		int WSAStartup(WORD wVersionRequested, LPWSADATA64 lpWSAData);
+	]]
+else
+	wsadata_typename = "WSADATA"
+
+	ffi.cdef[[
+		int WSAStartup(WORD wVersionRequested, LPWSADATA lpWSAData);
+	]]
+end
+
+ffi.cdef[[
+SOCKET WSASocket(int af, int type, int protocol,
+	LPWSAPROTOCOL_INFO lpProtocolInfo,
+	int g,
+	DWORD dwFlags);
+
+]]
+
+-- Startup windows sockets
+local winsock2 = ffi.load("ws2_32")
+
+
+function WinsockStartup()
+	local wVersionRequested = MAKEWORD( 2, 2 );
+
+	local dataarrayname = string.format("%s[1]", wsadata_typename)
+	local wsadata = ffi.new(dataarrayname)
+    local retValue = winsock2.WSAStartup(wVersionRequested, wsadata);
+	wsadata = wsadata[0]
+
+	return retValue, wsadata
+end
+
+error, wsadata = WinsockStartup()
+
+--print("WSAStartup Returned: ", retValue)
+--printWSADATA(wsadata)
+
+function GetLocalHostName()
+	local name = ffi.new("char[255]")
+	local err = winsock2.gethostname(name, 255);
+
+	return ffi.string(name)
+end
+
+return {
+	WSAData = wsadata,
+}

@@ -12,6 +12,7 @@ local C = ffi.C
 local class = require "class"
 
 local gl = require "gl"
+
 require "win_gdi32"
 require "win_user32"
 require "win_kernel32"

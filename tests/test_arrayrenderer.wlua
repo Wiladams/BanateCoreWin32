@@ -10,6 +10,8 @@ local gl = require( "gl" )
 
 local wgl = ffi.load("opengl32")
 
+local bit = require "bit"
+local band = bit.band
 require "GLTexture"
 require "win_gdi32"
 require "win_user32"
@@ -27,8 +29,11 @@ local captureHeight = 480
 
 local windowWidth = 640
 local windowHeight = 480
+local screenTexture = nil
 
 local window = FixedArray2D(captureWidth, captureHeight, "pixel_BGRA_b")
+local graphPort = ArrayRenderer(window)
+
 --[[
 local hbmScreenAccessor = Array2DAccessor({
 	TypeName = "Ppixel_BGRA_b",
@@ -40,7 +45,26 @@ local hbmScreenAccessor = Array2DAccessor({
 	})
 --]]
 
-local screenTexture = nil
+function bitnum(value)
+	if value then return 1 else return 0 end
+end
+
+function createCheckerboard(width, height, pixeltype)
+	pixeltype = pixeltype or "pixel_BGRA_b"
+
+	local pattern = FixedArray2D(width, height, pixeltype)
+	for i=0,height-1 do
+		for j=0,width-1 do
+			local c = (bitnum((band(i,0x8)==0))^bitnum((band(j,0x8)==0)))*255;
+			local color = PixelBGRA(c,c,c,255)
+			pattern:SetElement(j, i, color)
+		end
+	end
+
+	return pattern
+end
+
+local checker = createCheckerboard(64,64)
 
 function randomColor()
 		local r = math.random(0,255)
@@ -53,6 +77,49 @@ end
 
 function swap(a,b)
 	return b,a
+end
+
+function getRandomPoint(graphPort, x, y, size)
+	local x1 = math.random(x-size/2, x+size/2)
+	local y1 = math.random(y-size/2, y+size/2)
+
+	if x1 < 0 then x1 = 0 end
+	if y1 < 0 then y1 = 0 end
+
+	if x1>graphPort.Width-1 then x1 = graphPort.Width-1 end
+	if y1 > graphPort.Height-1 then y1 = graphPort.Height-1 end
+
+	return x1, y1
+end
+
+function randomlineH(graphPort, size)
+	size = size or 16
+	local x1 = math.random(0,graphPort.Width-1)
+	local y1 = math.random(0, graphPort.Height-1)
+
+	local remaining = graphPort.Width-x1
+	local len = math.random(1,size)
+	len = math.min(remaining, len)
+
+	local r,g,b = randomColor()
+	local pixel = PixelBGRA(b,g,r,255)
+
+	graphPort:LineH(x1, y1, len, pixel)
+end
+
+function randomlineV(graphPort)
+	size = size or 16
+	local x1 = math.random(0,graphPort.Width-1)
+	local y1 = math.random(0, graphPort.Height-1)
+
+	local remaining = graphPort.Height-y1
+	local len = math.random(1,size)
+	len = math.min(remaining, len)
+
+	local r,g,b = randomColor()
+	local pixel = PixelBGRA(b,g,r,255)
+
+	graphPort:LineV(x1, y1, len, pixel)
 end
 
 function randomline(graphPort)
@@ -70,8 +137,8 @@ function randomline(graphPort)
 	graphPort:Line(x1, y1, x2, y2, value)
 end
 
-function randomrect(graphPort)
-	local size = 200
+function randomrect(graphPort, size)
+	size = size or 16
 	local width = math.random(2,size)
 	local height = math.random(2,size)
 	local x = math.random(0,graphPort.Width-1-width)
@@ -85,65 +152,60 @@ function randomrect(graphPort)
 	graphPort:FillRectangle(x,y,width, height, color)
 end
 
-function randomtriangle(graphPort)
-	local x1 = math.random(0,graphPort.Width-1)
-	local y1 = math.random(0, graphPort.Height-1)
 
-	local x2 = math.random(0,graphPort.Width-1)
-	local y2 = math.random(0, graphPort.Height-1)
+function randomtriangle(graphPort, size)
+	size = size or 16
 
-	local x3 = math.random(0,graphPort.Width-1)
-	local y3 = math.random(0, graphPort.Height-1)
+	local x = math.random(0, graphPort.Width-1)
+	local y = math.random(0, graphPort.Height-1)
+
+	local x1, y1 = getRandomPoint(graphPort, x, y, size)
+	local x2, y2 = getRandomPoint(graphPort, x, y, size)
+	local x3, y3 = getRandomPoint(graphPort, x, y, size)
 
 	local r,g,b = randomColor()
 	local color = PixelBGRA(b,g,r,255)
 
 	graphPort:FillTriangle(x1, y1, x2, y2, x3, y3, color)
-
 end
 
 function randomquad(graphPort)
-	local x1 = math.random(0,graphPort.Width-1)
-	local y1 = math.random(0, graphPort.Height-1)
+	local size = 100
+	local x = math.random(0, graphPort.Width-1)
+	local y = math.random(0, graphPort.Height-1)
 
-	local x2 = math.random(0,graphPort.Width-1)
-	local y2 = math.random(0, graphPort.Height-1)
-
-	local x3 = math.random(0,graphPort.Width-1)
-	local y3 = math.random(0, graphPort.Height-1)
-
-	local x4 = math.random(0,graphPort.Width-1)
-	local y4 = math.random(0, graphPort.Height-1)
+	local x1, y1 = getRandomPoint(graphPort, x, y, size)
+	local x2, y2 = getRandomPoint(graphPort, x, y, size)
+	local x3, y3 = getRandomPoint(graphPort, x, y, size)
+	local x4, y4 = getRandomPoint(graphPort, x, y, size)
 
 	local r,g,b = randomColor()
 	local color = PixelBGRA(b,g,r,255)
 
+--print(x1,y1, x2,y2, x3,y3, x4,y4)
 	graphPort:FillQuad(x1,y1, x2,y2, x3,y3, x4,y4, color)
 end
 
-function drawImage(appwin, view)
-	local graphPort = ArrayRenderer(view)
+function drawImage(appwin, graphPort, tickCount)
 
 	-- start with white background
-	--graphPort:FillRectangle(0,0,graphPort.Width,graphPort.Height, PixelBGRA(255,255,255,255))
-
-	for i=1,1 do
-		randomrect(graphPort)
+	if tickCount and (tickCount % appwin.FrameRate) == 0 then
+		graphPort:FillRectangle(0,0,graphPort.Width,graphPort.Height, PixelBGRA(255,255,255,255))
 	end
 
-	for i=1,1 do
-		randomtriangle(graphPort)
+--	for i=1,appwin.FrameRate do
+	for i=1,1024 do
+--		randomtriangle(graphPort, 16)
+--		randomrect(graphPort, 16)
+--		randomquad(graphPort)
+		randomlineH(graphPort, 16)
+--		randomlineV(graphPort, 9)
+--		randomline(graphPort)
 	end
 
-	for i=1,1 do
-		randomquad(graphPort)
-	end
 
-	-- draw some random lines
-	for i=1,appwin.FrameRate do
-	--for i=1,1 do
-		randomline(graphPort)
-	end
+	graphPort:BitBlt(checker,  10, 10)
+
 end
 
 
@@ -157,7 +219,7 @@ function SetupCamera(sw, sh)
 end
 
 
-local screencolor = {1,1,1,1}
+local screencolor = {0.75,1,1,1}
 
 function BeginRender(sw, sh)
 	gl.glViewport(0, 0, sw, sh)
@@ -172,7 +234,7 @@ end
 
 
 function ontick(win, tickCount)
-	drawImage(win, window)
+	drawImage(win, graphPort, tickCount)
 
 	screenTexture:CopyPixelBuffer(window)
 
@@ -207,7 +269,7 @@ local function setup(appwin)
 	gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
 	gl.glDisable( gl.GL_CULL_FACE)
 
-	drawImage(appwin, window)
+	drawImage(appwin, graphPort, 0)
 
 	if not screenTexture then
 		-- Create texture object once the GL Context

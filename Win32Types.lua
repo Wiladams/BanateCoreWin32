@@ -8,14 +8,6 @@ local lshift = bit.lshift
 local rshift = bit.rshift
 
 ffi.cdef[[
-typedef void *			PVOID;
-typedef PVOID			HANDLE;
-typedef HANDLE			LPHANDLE;
-typedef intptr_t		LONG_PTR;
-//typedef HANDLE		LONG_PTR;
-typedef HANDLE			UINT_PTR;
-typedef uintptr_t		ULONG_PTR;
-//typedef unsigned __int64 ULONG_PTR;
 
 // Basic Data types
 typedef unsigned char	BYTE;
@@ -42,6 +34,15 @@ typedef unsigned int	ULONG32;
 typedef unsigned short	USHORT;
 
 // Some pointer types
+typedef void *			PVOID;
+typedef PVOID			HANDLE;
+typedef HANDLE			LPHANDLE;
+typedef DWORD *			DWORD_PTR;
+typedef intptr_t		LONG_PTR;
+typedef uintptr_t		UINT_PTR;
+typedef uintptr_t		ULONG_PTR;
+
+
 typedef DWORD *			LPCOLORREF;
 
 typedef char *			LPSTR;
@@ -113,7 +114,9 @@ typedef ACCESS_MASK* PACCESS_MASK;
 
 typedef LONG FXPT16DOT16, *LPFXPT16DOT16;
 typedef LONG FXPT2DOT30, *LPFXPT2DOT30;
+]]
 
+ffi.cdef[[
 typedef union _LARGE_INTEGER {
 	struct {
 		DWORD LowPart;
@@ -128,6 +131,16 @@ typedef union _LARGE_INTEGER {
 
 ]]
 
+
+
+ffi.cdef[[
+typedef struct _GUID {
+	DWORD Data1;
+	WORD Data2;
+	WORD Data3;
+	BYTE Data4[8];
+} GUID;
+]]
 
 ffi.cdef[[
 enum {

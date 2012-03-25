@@ -1,11 +1,13 @@
 -- Put this at the top of any test
-local ppath = package.path..';..\\?.lua;..\\core\\?.lua;'
+--local ppath = package.path..';..\\?.lua;..\\core\\?.lua;'
+local ppath = package.path..';..\\?.lua;'
 package.path = ppath;
 
 
 -- test_pixelbuffer_gl.lua
-local ffi   = require( "ffi" )
-local C = ffi.C
+require "BanateCore"
+
+
 local gl = require( "gl" )
 
 local wgl = ffi.load("opengl32")
@@ -16,10 +18,12 @@ require "win_user32"
 require "win_opengl32"
 
 require "GameWindow"
+
+--[[
 require "Pixel"
 require "Array2DAccessor"
 require "ArrayRenderer"
-
+--]]
 -- Create a normal DC and a memory DC for the entire screen. The
 -- normal DC provides a "snapshot" of the screen contents. The
 -- memory DC keeps a copy of this "snapshot" in the associated
@@ -61,11 +65,11 @@ function captureScreen()
 		0,
 		C.SRCCOPY)
 
-	local graphPort = ArrayRenderer(hbmScreenAccessor)
+--	local graphPort = ArrayRenderer(hbmScreenAccessor)
 
-	local red = PixelBGRA(0,0,255,255)
+--	local red = PixelBGRA(0,0,255,255)
 
-	graphPort:LineH(0, hbmScreen.Height/2, hbmScreen.Width-1, red)
+--	graphPort:LineH(0, hbmScreen.Height/2, hbmScreen.Width-1, red)
 end
 
 
@@ -133,7 +137,7 @@ local function main()
 
 	local appwin = GameWindow({
 		OnTickDelegate = ontick,
-		FrameRate = 30,
+		FrameRate = 15,
 		Extent = {320,240},
 		})
 

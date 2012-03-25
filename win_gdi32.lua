@@ -9,7 +9,6 @@ local bor = bit.xbor	-- |
 local bnot = bit.bnot	-- ~
 
 require "Win32Types"
-require "Pixel"
 
 ffi.cdef[[
 /* pixel types */
@@ -108,7 +107,7 @@ typedef struct {
 	int		Width;
 	int		Height;
 	int		BitsPerPixel;
-	Ppixel_BGR_b Pixels;
+	char * Pixels;
 	BITMAPINFO	Info;
 } GDIDIBSection;
 
@@ -566,10 +565,4 @@ function StretchBlt(winDC, img, XDest, YDest,DestWidth,DestHeight)
 end
 
 
---[[
-print("win_gdi32.lua - TEST")
 
-
-local dc = GDIContext()
-print(dc)
---]]

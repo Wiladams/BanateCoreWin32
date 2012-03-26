@@ -1,27 +1,24 @@
 -- Put this at the top of any test
-local ppath = package.path..';..\\?.lua;..\\core\\?.lua;'
+local ppath = package.path..';..\\?.lua;'
 package.path = ppath;
 
 
 -- test_pixelbuffer_gl.lua
-local ffi   = require( "ffi" )
-local C = ffi.C
-local gl = require( "gl" )
+local BC = require "BanateCore"
 
+local gl = require( "gl" )
 local wgl = ffi.load("opengl32")
 
-local bit = require "bit"
-local band = bit.band
 require "GLTexture"
 require "win_gdi32"
 require "win_user32"
 require "win_opengl32"
 
 require "GameWindow"
-require "Pixel"
-require "Array2DAccessor"
-require "ArrayRenderer"
-require "FixedArray2D"
+--require "Pixel"
+--require "Array2DAccessor"
+--require "ArrayRenderer"
+--require "FixedArray2D"
 
 
 local captureWidth = 640
@@ -34,16 +31,9 @@ local screenTexture = nil
 local window = FixedArray2D(captureWidth, captureHeight, "pixel_BGRA_b")
 local graphPort = ArrayRenderer(window)
 
---[[
-local hbmScreenAccessor = Array2DAccessor({
-	TypeName = "Ppixel_BGRA_b",
-	Width = captureWidth,
-	Height = captureHeight,
-	Data = hbmScreen.Pixels,
-	BytesPerElement= 4,
-	Alignment = 1,
-	})
---]]
+
+local sw = StopWatch()
+
 
 function bitnum(value)
 	if value then return 1 else return 0 end
@@ -129,8 +119,6 @@ function randomline(graphPort)
 	local x2 = math.random(0,graphPort.Width-1)
 	local y2 = math.random(0, graphPort.Height-1)
 
-	--print(x1,y1,x2,y2)
-
 	local r,g,b = randomColor()
 	local value = PixelBGRA(b,g,r,255)
 
@@ -195,8 +183,8 @@ function drawImage(appwin, graphPort, tickCount)
 
 --	for i=1,appwin.FrameRate do
 	for i=1,1024 do
---		randomtriangle(graphPort, 16)
---		randomrect(graphPort, 16)
+		randomtriangle(graphPort, 16)
+		randomrect(graphPort, 16)
 --		randomquad(graphPort)
 		randomlineH(graphPort, 16)
 --		randomlineV(graphPort, 9)
@@ -246,6 +234,10 @@ function ontick(win, tickCount)
 	screenTexture:Render(0,0,winWidth, winHeight)
 
 	win:SwapBuffers()
+
+	-- Display Frames Per Second
+	--local stats = string.format("Seconds: %f  Frame: %d  FPS: %f", sw:Seconds(), tickCount, tickCount/sw:Seconds())
+	--win.GDIContext:Text(stats)
 end
 
 local function test_wgl(glctxt)
@@ -276,6 +268,10 @@ local function setup(appwin)
 		-- is attached
 		screenTexture = Texture(window)
 	end
+
+	local black = RGB(0,0,0)
+	appwin.GDIContext:SetDCPenColor(black)
+
 end
 
 local function main()

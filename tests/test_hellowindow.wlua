@@ -1,5 +1,5 @@
 -- Put this at the top of any test
-local ppath = package.path..';..\\?.lua;..\\core\\?.lua;'
+local ppath = package.path..';..\\?.lua;'
 package.path = ppath;
 
 require "GameWindow"

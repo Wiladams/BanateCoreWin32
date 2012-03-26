@@ -11,9 +11,10 @@ ffi.cdef[[
 
 // Basic Data types
 typedef unsigned char	BYTE;
-typedef int				BOOL;
+typedef long			BOOL;
 typedef BYTE			BOOLEAN;
 typedef char			CHAR;
+typedef wchar_t			WCHAR;
 typedef unsigned short	WORD;
 typedef unsigned long	DWORD;
 typedef unsigned int	DWORD32;
@@ -34,9 +35,8 @@ typedef unsigned int	ULONG32;
 typedef unsigned short	USHORT;
 
 // Some pointer types
+
 typedef void *			PVOID;
-typedef PVOID			HANDLE;
-typedef HANDLE			LPHANDLE;
 typedef DWORD *			DWORD_PTR;
 typedef intptr_t		LONG_PTR;
 typedef uintptr_t		UINT_PTR;
@@ -47,16 +47,20 @@ typedef DWORD *			LPCOLORREF;
 
 typedef char *			LPSTR;
 typedef LPSTR			LPTSTR;
+
+typedef DWORD *			LPDWORD;
+typedef void *			LPVOID;
+typedef WORD *			LPWORD;
+
 typedef const char *	LPCSTR;
 typedef LPCSTR			LPCTSTR;
 typedef const void *	LPCVOID;
 
-typedef void *			LPVOID;
 
 typedef LONG_PTR		LRESULT;
 
-typedef intptr_t		LPARAM;
-typedef uintptr_t		WPARAM;
+typedef LONG_PTR		LPARAM;
+typedef UINT_PTR		WPARAM;
 
 typedef unsigned char	*PUCHAR;
 typedef unsigned int	*PUINT;
@@ -76,35 +80,42 @@ typedef WORD			ATOM;
 typedef DWORD			LCID;
 
 // Various Handles
-typedef HANDLE			HBITMAP;
-typedef HANDLE			HBRUSH;
-typedef HANDLE			HICON;
+typedef void *			HANDLE;
+typedef HANDLE			LPHANDLE;
+typedef void *			HBITMAP;
+typedef void *			HBRUSH;
+typedef void *			HICON;
 typedef HICON			HCURSOR;
 typedef HANDLE			HDC;
-typedef HANDLE			HDESK;
+typedef void *			HDESK;
 typedef HANDLE			HDROP;
 typedef HANDLE			HDWP;
 typedef HANDLE			HENHMETAFILE;
-typedef int				HFILE;
+typedef INT				HFILE;
 typedef HANDLE			HFONT;
-typedef HANDLE			HGDIOBJ;
+typedef void *			HGDIOBJ;
 typedef HANDLE			HGLOBAL;
 typedef HANDLE 			HGLRC;
 typedef HANDLE			HHOOK;
-typedef HANDLE			HINSTANCE;
-typedef HANDLE			HKEY;
+typedef void *			HINSTANCE;
+typedef void *			HKEY;
+typedef void *			HKL;
 typedef HANDLE			HLOCAL;
+typedef void *			HMEMF;
 typedef HANDLE			HMENU;
 typedef HANDLE			HMETAFILE;
+typedef void			HMF;
 typedef HINSTANCE		HMODULE;
 typedef HANDLE			HMONITOR;
 typedef HANDLE			HPALETTE;
-typedef HANDLE			HPEN;
+typedef void *			HPEN;
 typedef LONG			HRESULT;
 typedef HANDLE			HRGN;
-typedef HANDLE			HRSRC;
+typedef void *			HRSRC;
+typedef void *			HSTR;
 typedef HANDLE			HSZ;
-typedef HANDLE			HWINSTA;
+typedef void *			HTASK;
+typedef void *			HWINSTA;
 typedef HANDLE			HWND;
 
 
@@ -132,15 +143,6 @@ typedef union _LARGE_INTEGER {
 ]]
 
 
-
-ffi.cdef[[
-typedef struct _GUID {
-	DWORD Data1;
-	WORD Data2;
-	WORD Data3;
-	BYTE Data4[8];
-} GUID;
-]]
 
 ffi.cdef[[
 enum {

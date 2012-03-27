@@ -8,7 +8,7 @@ local band = bit.band	-- &
 local bor = bit.xbor	-- |
 local bnot = bit.bnot	-- ~
 
-require "Win32Types"
+require "WTypes"
 
 ffi.cdef[[
 /* pixel types */

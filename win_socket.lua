@@ -16,14 +16,15 @@ local band = bit.band
 local bor = bit.bor
 local bswap = bit.bswap
 
-require "Win32Types"
+require "WTypes"
+
 
 ffi.cdef[[
 typedef unsigned char   u_char;
 typedef unsigned short  u_short;
 typedef unsigned int    u_int;
 typedef unsigned long   u_long;
-typedef unsigned __int64 u_int64;
+typedef uint64_t 		u_int64;
 
 typedef UINT_PTR	SOCKET;
 
@@ -52,30 +53,30 @@ enum {
  * Protocols
  */
 enum {
-            IPPROTO_IP = 0,               /* dummy for IP */
-            IPPROTO_ICMP = 1,               /* control message protocol */
-            IPPROTO_IGMP = 2,               /* group management protocol */
-            IPPROTO_GGP = 3,               /* gateway^2 (deprecated) */
-            IPPROTO_TCP = 6,               /* tcp */
-            IPPROTO_PUP = 12,              /* pup */
-            IPPROTO_UDP = 17,              /* user datagram protocol */
-            IPPROTO_IDP = 22,              /* xns idp */
-            IPPROTO_RDP = 27,
-            IPPROTO_IPV6 = 41, // IPv6 header
-            IPPROTO_ROUTING = 43, // IPv6 Routing header
-            IPPROTO_FRAGMENT = 44, // IPv6 fragmentation header
-            IPPROTO_ESP = 50, // encapsulating security payload
-            IPPROTO_AH = 51, // authentication header
-            IPPROTO_ICMPV6 = 58, // ICMPv6
-            IPPROTO_NONE = 59, // IPv6 no next header
-            IPPROTO_DSTOPTS = 60, // IPv6 Destination options
-            IPPROTO_ND = 77,              /* UNOFFICIAL net disk proto */
-            IPPROTO_ICLFXBM = 78,
-            IPPROTO_PIM = 103,
-            IPPROTO_PGM = 113,
-            IPPROTO_RM = IPPROTO_PGM,
-            IPPROTO_L2TP = 115,
-            IPPROTO_SCTP = 132,
+	IPPROTO_IP = 0,               /* dummy for IP */
+	IPPROTO_ICMP = 1,               /* control message protocol */
+	IPPROTO_IGMP = 2,               /* group management protocol */
+	IPPROTO_GGP = 3,               /* gateway^2 (deprecated) */
+	IPPROTO_TCP = 6,               /* tcp */
+	IPPROTO_PUP = 12,              /* pup */
+	IPPROTO_UDP = 17,              /* user datagram protocol */
+	IPPROTO_IDP = 22,              /* xns idp */
+	IPPROTO_RDP = 27,
+	IPPROTO_IPV6 = 41, // IPv6 header
+	IPPROTO_ROUTING = 43, // IPv6 Routing header
+	IPPROTO_FRAGMENT = 44, // IPv6 fragmentation header
+	IPPROTO_ESP = 50, // encapsulating security payload
+	IPPROTO_AH = 51, // authentication header
+	IPPROTO_ICMPV6 = 58, // ICMPv6
+	IPPROTO_NONE = 59, // IPv6 no next header
+	IPPROTO_DSTOPTS = 60, // IPv6 Destination options
+	IPPROTO_ND = 77,              /* UNOFFICIAL net disk proto */
+	IPPROTO_ICLFXBM = 78,
+	IPPROTO_PIM = 103,
+	IPPROTO_PGM = 113,
+	IPPROTO_RM = IPPROTO_PGM,
+	IPPROTO_L2TP = 115,
+	IPPROTO_SCTP = 132,
 };
 
 enum {
@@ -232,9 +233,9 @@ enum {
 	SO_CONNECT_TIME = 0x700C,
 };
 
-        /*
-        * TCP options.
-        */
+/*
+* TCP options.
+*/
 enum {
 	TCP_NODELAY     = 0x0001,
 	TCP_BSDURGENT   = 0x7000,
@@ -258,9 +259,9 @@ enum {
 };
 
 
-        /*
-        * Maximum queue length specifiable by listen.
-        */
+/*
+* Maximum queue length specifiable by listen.
+*/
 enum {
 	SOMAXCONN     =  0x7fffffff,
 };
@@ -275,16 +276,16 @@ enum {
 	MSG_MAXIOVLEN   =  16,
 };
 
-        /*
-         * Define constant based on rfc883, used by gethostbyxxxx() calls.
-         */
+/*
+* Define constant based on rfc883, used by gethostbyxxxx() calls.
+*/
 enum {
 	MAXGETHOSTSTRUCT  = 1024,
 };
 
 enum {
-WSADESCRIPTION_LEN =     256,
-WSASYS_STATUS_LEN  =     128,
+	WSADESCRIPTION_LEN =     256,
+	WSASYS_STATUS_LEN  =     128,
 };
 ]]
 
@@ -302,30 +303,28 @@ ffi.cdef[[
 typedef struct in_addr {
 	union {
 		struct {
-			UCHAR s_b1,s_b2,s_b3,s_b4;
+			uint8_t s_b1,s_b2,s_b3,s_b4;
 			} S_un_b;
 		struct {
-			USHORT s_w1,s_w2;
+			uint16_t s_w1,s_w2;
 			} S_un_w;
-		ULONG S_addr;
+		uint32_t S_addr;
 	} S_un;
 } IN_ADDR, *PIN_ADDR, *LPIN_ADDR;
 ]]
 
 ffi.cdef[[
 struct sockaddr {
-	u_short  sa_family;
-
-	char    sa_data[14];
+	uint16_t	sa_family;
+	uint8_t		sa_data[14];
 } SOCKADDR, *PSOCKADDR, *LPSOCKADDR;
 
 
 typedef struct sockaddr_in {
-    short   sin_family;
-
-    USHORT sin_port;
-    IN_ADDR sin_addr;
-    CHAR sin_zero[8];
+    int16_t		sin_family;
+    uint16_t	sin_port;
+    IN_ADDR 	sin_addr;
+    uint8_t 	sin_zero[8];
 } SOCKADDR_IN, *PSOCKADDR_IN;
 ]]
 
@@ -343,9 +342,9 @@ typedef struct in6_addr {
 } IN6_ADDR, *PIN6_ADDR, *LPIN6_ADDR;
 
 struct sockaddr_in6 {
-        short   sin6_family;
-        u_short sin6_port;
-        u_long  sin6_flowinfo;
+        int16_t		sin6_family;
+        uint16_t	sin6_port;
+        uint32_t	sin6_flowinfo;
         struct  in6_addr sin6_addr;
         u_long  sin6_scope_id;
 };
@@ -453,8 +452,8 @@ typedef struct WSAData64 {
  * Structure used for manipulating linger option.
  */
 struct  linger {
-        u_short l_onoff;                /* option on/off */
-        u_short l_linger;               /* linger time */
+	u_short l_onoff;                /* option on/off */
+	u_short l_linger;               /* linger time */
 };
 
 
@@ -725,7 +724,7 @@ function WinsockStartup()
 	return retValue, wsadata
 end
 
-error, wsadata = WinsockStartup()
+local error, wsadata = WinsockStartup()
 
 --print("WSAStartup Returned: ", retValue)
 --printWSADATA(wsadata)

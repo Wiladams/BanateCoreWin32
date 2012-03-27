@@ -1,5 +1,5 @@
 local ffi = require "ffi"
-require "Win32Types"
+require "WTypes"
 require "win_kernel32"
 local kernel32 = ffi.load("Kernel32")
 local user32 = ffi.load("User32")

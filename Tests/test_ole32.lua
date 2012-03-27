@@ -15,7 +15,7 @@ local res = ole32.CoInitialize(nil)
 print(res)
 
 print("IID_IRpcChannel")
-print(C.IID_IRpcChannel)
+print(IID_IRpcChannel)
 
 print("IID_IUnknown", IID_IUnknown)
 print("IID_IClassFactory", IID_IClassFactory)

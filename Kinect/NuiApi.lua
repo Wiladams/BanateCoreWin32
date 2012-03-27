@@ -1,3 +1,7 @@
+-- Put this at the top of any test
+local ppath = package.path..';..\\?.lua;'
+package.path = ppath;
+
 -- Kinect.lua
 
 local ffi = require "ffi"
@@ -68,12 +72,6 @@ static_assert(E_NUI_FRAME_NO_DATA == 0x83010001, "Error code has changed.");
 // Bad index passed in to NuiCreateInstanceByXXX
 #define E_NUI_BADIINDEX                         MAKE_HRESULT(SEVERITY_ERROR, FACILITY_NUI, /* 1413 */ ERROR_INVALID_INDEX)                   // 0x83010585
 --]]
-
-
-
-
-
-
 
 
 

@@ -1,3 +1,7 @@
+-- Put this at the top of any test
+local ppath = package.path..';..\\?.lua;..\\core\\?.lua;'
+package.path = ppath;
+
 -- test_pixelbuffer_gl.lua
 local ffi   = require( "ffi" )
 local C = ffi.C
@@ -11,10 +15,8 @@ require "win_user32"
 require "win_opengl32"
 
 require "GameWindow"
-require "Pixel"
-require "Array2DAccessor"
-require "ArrayRenderer"
-require "FixedArray2D"
+
+require "BanateCore"
 
 
 
@@ -33,6 +35,9 @@ local pixelAccessor = Array2DAccessor({
 	BytesPerElement= 4,
 	})
 
+local graphPort = ArrayRenderer(pixelBuffer)
+
+
 
 local screenTexture = nil
 
@@ -45,20 +50,19 @@ function randomcolor()
 end
 
 function updatepixbuff()
-	graphPort = ArrayRenderer(pixelAccessor)
 	local red = PixelRGBA(255,0,0,255)
 
 
 	-- Vertical lines
-	for i=0,pixelAccessor.Width-1,8 do
-		graphPort:LineV(i, 0, pixelAccessor.Height-1, randomcolor())
+	for i=0,graphPort.Width-1,8 do
+		graphPort:LineV(i, 0, graphPort.Height-1, randomcolor())
 	end
 
-	for i=0,pixelAccessor.Height-1,8 do
-		graphPort:LineH(0, i, pixelAccessor.Width-1, randomcolor())
+	for i=0,graphPort.Height-1,8 do
+		graphPort:LineH(0, i, graphPort.Width-1, randomcolor())
 	end
 
-	--[[
+	---[[
 	for i=0,10000 do
 		local rcolor = randomcolor()
 		local x = math.random(0,pixelAccessor.Width-1)

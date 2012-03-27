@@ -4,6 +4,7 @@ require "WTypes"
 
 require "guiddef"
 require "win32_IUnknown"
+require "ObjIdl"
 
 local _gszWlmOLEUIResourceDirective = "/macres:ole2ui.rsc";
 

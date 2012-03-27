@@ -1,5 +1,5 @@
 local ffi = require "ffi"
-require "Win32Types"
+require "WTypes"
 require "win_gdi32"
 local gl    = require( "gl" )
 local wgl= ffi.load("opengl32")

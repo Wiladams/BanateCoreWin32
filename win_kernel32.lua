@@ -1,11 +1,9 @@
 local ffi = require "ffi"
 local C = ffi.C
 
-require "Win32Types"
+require "WTypes"
 
 ffi.cdef[[
-
-
 	HMODULE GetModuleHandleA(LPCSTR lpModuleName);
 
 	BOOL CloseHandle(HANDLE hObject);
@@ -15,15 +13,14 @@ ffi.cdef[[
 
 	void * GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
 
-	BOOL QueryPerformanceFrequency(__int64 *lpFrequency);
-	BOOL QueryPerformanceCounter(__int64 *lpPerformanceCount);
+	BOOL QueryPerformanceFrequency(int64_t *lpFrequency);
+	BOOL QueryPerformanceCounter(int64_t *lpPerformanceCount);
 
 //	DWORD QueueUserAPC(PAPCFUNC pfnAPC, HANDLE hThread, ULONG_PTR dwData);
 
 	void Sleep(DWORD dwMilliseconds);
 
 	DWORD SleepEx(DWORD dwMilliseconds, BOOL bAlertable);
-
 ]]
 
 function GetPerformanceFrequency()
@@ -57,7 +54,6 @@ end
 --]]
 
 ffi.cdef[[
-
 int MultiByteToWideChar(UINT CodePage,
     DWORD    dwFlags,
     LPCSTR   lpMultiByteStr, int cbMultiByte,
@@ -66,11 +62,11 @@ int MultiByteToWideChar(UINT CodePage,
 
 int WideCharToMultiByte(UINT CodePage,
     DWORD    dwFlags,
-    LPCWSTR  lpWideCharStr, int cchWideChar,
+	LPCWSTR  lpWideCharStr, int cchWideChar,
     LPSTR   lpMultiByteStr, int cbMultiByte,
     LPCSTR   lpDefaultChar,
     LPBOOL  lpUsedDefaultChar);
---]]
+]]
 
 
 

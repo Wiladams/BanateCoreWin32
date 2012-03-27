@@ -7,6 +7,7 @@ local bor = bit.bor
 local lshift = bit.lshift
 local rshift = bit.rshift
 
+
 ffi.cdef[[
 
 // Basic Data types
@@ -15,27 +16,37 @@ typedef long			BOOL;
 typedef BYTE			BOOLEAN;
 typedef char			CHAR;
 typedef wchar_t			WCHAR;
-typedef unsigned short	WORD;
+typedef uint16_t		WORD;
 typedef unsigned long	DWORD;
-typedef unsigned int	DWORD32;
+typedef uint32_t		DWORD32;
 typedef int				INT;
-typedef signed int		INT32;
-typedef signed __int64	INT64;
+typedef int32_t			INT32;
+typedef int64_t			INT64;
 typedef float 			FLOAT;
 typedef long			LONG;
 typedef signed int		LONG32;
-typedef __int64			LONGLONG;
+typedef int64_t			LONGLONG;
 
-typedef unsigned char	BCHAR;
+typedef uint8_t			BCHAR;
 typedef unsigned char	UCHAR;
 typedef unsigned int	UINT;
 typedef unsigned int	UINT32;
 typedef unsigned long	ULONG;
 typedef unsigned int	ULONG32;
 typedef unsigned short	USHORT;
+typedef uint64_t		ULONGLONG;
 
 
 // Some pointer types
+typedef unsigned char	*PUCHAR;
+typedef unsigned int	*PUINT;
+typedef unsigned int	*PUINT32;
+typedef unsigned long	*PULONG;
+typedef unsigned int	*PULONG32;
+typedef unsigned short	*PUSHORT;
+typedef LONGLONG 		*PLONGLONG;
+typedef ULONGLONG 		*PULONGLONG;
+
 
 typedef void *			PVOID;
 typedef DWORD *			DWORD_PTR;
@@ -46,8 +57,10 @@ typedef uintptr_t		ULONG_PTR;
 
 typedef DWORD *			LPCOLORREF;
 
+typedef BOOL *			LPBOOL;
 typedef char *			LPSTR;
 typedef short *			LPWSTR;
+typedef const short *	LPCWSTR;
 typedef LPSTR			LPTSTR;
 
 typedef DWORD *			LPDWORD;
@@ -64,12 +77,6 @@ typedef LONG_PTR		LRESULT;
 typedef LONG_PTR		LPARAM;
 typedef UINT_PTR		WPARAM;
 
-typedef unsigned char	*PUCHAR;
-typedef unsigned int	*PUINT;
-typedef unsigned int	*PUINT32;
-typedef unsigned long	*PULONG;
-typedef unsigned int	*PULONG32;
-typedef unsigned short	*PUSHORT;
 
 typedef unsigned char	TBYTE;
 typedef char			TCHAR;
@@ -143,6 +150,12 @@ typedef LONG FXPT16DOT16, *LPFXPT16DOT16;
 typedef LONG FXPT2DOT30, *LPFXPT2DOT30;
 ]]
 
+
+
+require "guiddef"
+
+
+
 ffi.cdef[[
 typedef union _LARGE_INTEGER {
 	struct {
@@ -155,6 +168,12 @@ typedef union _LARGE_INTEGER {
 	} u;
 	LONGLONG QuadPart;
 } LARGE_INTEGER,  *PLARGE_INTEGER;
+
+typedef struct _ULARGE_INTEGER
+{
+    ULONGLONG QuadPart;
+} 	ULARGE_INTEGER;
+
 
 typedef struct _FILETIME
 {

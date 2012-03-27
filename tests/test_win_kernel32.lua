@@ -2,6 +2,8 @@
 local ppath = package.path..';..\\?.lua;'
 package.path = ppath;
 
+local ffi = require "ffi"
+local C = ffi.C
 
 require "win_kernel32"
 

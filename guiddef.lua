@@ -4,7 +4,6 @@
 local ffi = require "ffi"
 local C = ffi.C
 
-require "WTypes"
 
 ffi.cdef[[
 typedef struct {
@@ -103,33 +102,29 @@ function IsEqualFMTID(rfmtid1, rfmtid2)
 	return rfmtid1 == rfmtid2
 end
 
---[[
-GUID Structure too large
-for inclusion in a structure?
+
+
+
+-- From Rpcrt4.h
+
+Rpcrt4 = ffi.load("Rpcrt4")
 
 ffi.cdef[[
-// Originally from WTypes.h
-typedef struct _OBJECTID {
-	GUID Lineage;
-    unsigned long Uniquifier;
-} 	OBJECTID;
+int UuidCreate(UUID * Uuid);
+
+int UuidFromStringA(const char * StringUuid, UUID * Uuid);
+
+int UuidToStringA(UUID * Uuid , char ** StringUuid);
 ]]
---]]
 
---[[
-print("guiddef.lua - TEST")
-local guid, name = DEFINE_OLEGUID("foo", 200, 10, 20)
-local iunknown, unknownguid = DEFINE_OLEGUID("iunknown", 0,0,0)
 
-print(name, guid)
-print(iunknown, unknownguid)
+-- Helpful function for constructing a UUID/GUID
+-- from a string
+function UUIDFromString(stringid)
+	local id = ffi.new("UUID[1]")
+	Rpcrt4.UuidFromStringA(stringid, id)
+	id = id[0]
 
-print("GUID NULL")
-print(GUID_NULL)
+	return id
+end
 
-print("COMPARE EQUAL")
-local guid2 = GUID()
-print(GUID_NULL == guid2)
-print("UNEQUAL")
-print(GUID_NULL == guid)
---]]

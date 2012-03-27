@@ -1,0 +1,6 @@
+
+-- #define DECLSPEC_NOVTABLE
+
+-- #define DECLSPEC_UUID(x)
+
+-- #define MIDL_INTERFACE(x)   struct DECLSPEC_UUID(x) DECLSPEC_NOVTABLE

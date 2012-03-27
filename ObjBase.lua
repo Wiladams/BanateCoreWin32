@@ -1,9 +1,9 @@
 -- ObjBase.h
 ffi = require "ffi"
-require "Win32Types"
+require "WTypes"
 
 require "guiddef"
-require "CGuid"
+require "win32_IUnknown"
 
 local _gszWlmOLEUIResourceDirective = "/macres:ole2ui.rsc";
 
@@ -88,6 +88,59 @@ HRESULT  CoGetSystemSecurityPermissions(COMSD comSDType, PSECURITY_DESCRIPTOR *p
 // definition for Win7 new APIs
 //HRESULT CoGetApartmentType(APTTYPE * pAptType, APTTYPEQUALIFIER * pAptQualifier);
 
+
+typedef struct tagSOleTlsDataPublic
+{
+    void *pvReserved0[2];
+    DWORD dwReserved0[3];
+    void *pvReserved1[1];
+    DWORD dwReserved1[3];
+    void *pvReserved2[4];
+    DWORD dwReserved2[1];
+    void *pCurrentCtx;
+} SOleTlsDataPublic;
+
+
+/* COM+ APIs */
+
+HRESULT CoGetObjectContext(REFIID riid,  LPVOID * ppv);
+
+/* register/revoke/get class objects */
+
+HRESULT  CoGetClassObject( REFCLSID rclsid,  DWORD dwClsContext,  LPVOID pvReserved,
+                     REFIID riid,  LPVOID * ppv);
+HRESULT  CoRegisterClassObject( REFCLSID rclsid,  LPUNKNOWN pUnk,
+                     DWORD dwClsContext,  DWORD flags,  LPDWORD lpdwRegister);
+HRESULT  CoRevokeClassObject( DWORD dwRegister);
+HRESULT  CoResumeClassObjects(void);
+HRESULT  CoSuspendClassObjects(void);
+ULONG CoAddRefServerProcess(void);
+ULONG CoReleaseServerProcess(void);
+HRESULT  CoGetPSClsid( REFIID riid,  CLSID *pClsid);
+HRESULT  CoRegisterPSClsid( REFIID riid,  REFCLSID rclsid);
+
+// Registering surrogate processes
+HRESULT  CoRegisterSurrogate(LPSURROGATE pSurrogate);
+
+/* marshaling interface pointers */
+
+HRESULT CoGetMarshalSizeMax( ULONG *pulSize,  REFIID riid,  LPUNKNOWN pUnk,
+                     DWORD dwDestContext,  LPVOID pvDestContext,  DWORD mshlflags);
+HRESULT CoMarshalInterface( LPSTREAM pStm,  REFIID riid,  LPUNKNOWN pUnk,
+                     DWORD dwDestContext,  LPVOID pvDestContext,  DWORD mshlflags);
+HRESULT CoUnmarshalInterface( LPSTREAM pStm,  REFIID riid,  LPVOID * ppv);
+HRESULT CoMarshalHresult( LPSTREAM pstm,  HRESULT hresult);
+HRESULT CoUnmarshalHresult( LPSTREAM pstm,  HRESULT  * phresult);
+HRESULT CoReleaseMarshalData( LPSTREAM pStm);
+HRESULT CoDisconnectObject( LPUNKNOWN pUnk,  DWORD dwReserved);
+HRESULT CoLockObjectExternal( LPUNKNOWN pUnk,  BOOL fLock,  BOOL fLastUnlockReleases);
+HRESULT CoGetStandardMarshal( REFIID riid,  LPUNKNOWN pUnk,
+                     DWORD dwDestContext,  LPVOID pvDestContext,  DWORD mshlflags,
+                     LPMARSHAL * ppMarshal);
+
+
+HRESULT CoGetStdMarshalEx( LPUNKNOWN pUnkOuter,  DWORD smexflags,
+                             LPUNKNOWN * ppUnkInner);
 ]]
 
 -- interface marshaling definitions

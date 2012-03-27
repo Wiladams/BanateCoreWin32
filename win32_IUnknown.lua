@@ -1,13 +1,22 @@
 
 
 local ffi = require "ffi"
-require "Win32Types"
+require "WTypes"
 require "guiddef"
 
+-- Forward declarations
 ffi.cdef[[
-typedef HRESULT (*QueryInterfacePROC)(void * This, REFIID riid, void **ppvObject);
-typedef ULONG (*AddRefPROC )(void * This);
-typedef ULONG (*ReleasePROC)(void * This);
+
+typedef struct IUnknown IUnknown;
+typedef struct AsyncIUnknown AsyncIUnknown;
+typedef struct IClassFactory IClassFactory;
+
+]]
+
+ffi.cdef[[
+typedef HRESULT (*QueryInterfacePROC)(IUnknown * This, REFIID riid, void **ppvObject);
+typedef ULONG (*AddRefPROC )(IUnknown * This);
+typedef ULONG (*ReleasePROC)(IUnknown * This);
 
 
 typedef struct _IUnknownVtbl {
@@ -24,8 +33,8 @@ typedef struct _IUnknown
 
 
 // For Class Factory
-typedef HRESULT (*CreateInstancePROC)(void * This, void *pUnkOuter, REFIID riid, void **ppvObject);
-typedef HRESULT (*LockServerPROC)(void * This, BOOL fLock);
+typedef HRESULT (*CreateInstancePROC)(IUnknown * This, void *pUnkOuter, REFIID riid, void **ppvObject);
+typedef HRESULT (*LockServerPROC)(IUnknown * This, BOOL fLock);
 
 
 typedef struct {
@@ -39,6 +48,9 @@ typedef struct {
     LockServerPROC LockServer;
 } IClassFactoryVtbl;
 
+typedef struct IClassFactory {
+	IClassFactoryVtbl * lpVtbl;
+} IClassFactory;
 ]]
 
 IID_IUnknown = DEFINE_OLEGUID("IUnknown", 0, 0, 0)
@@ -62,6 +74,8 @@ IUnknown_mt = {
 		end,
 	},
 }
+
+IID_AsyncIUnknown = DEFINE_OLEGUID("AsyncIUnknown", 0x000e0000,0x0000,0x0000)
 
 
 --MIDL_INTERFACE("00000001-0000-0000-C000-000000000046")
@@ -100,8 +114,6 @@ IClassFactory_mt = {
 }
 
 
-print("IID_IUnknown", IID_IUnknown)
-print("IID_IClassFactory", IID_IClassFactory)
 
 --[[
 //////////////////////////////////////////////////////////////////

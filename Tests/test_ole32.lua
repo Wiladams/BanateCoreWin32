@@ -17,6 +17,20 @@ print(res)
 print("IID_IRpcChannel")
 print(C.IID_IRpcChannel)
 
+print("IID_IUnknown", IID_IUnknown)
+print("IID_IClassFactory", IID_IClassFactory)
+
+--[[
+Similar to COM CoCreateInstance
+
+Ideally, I'd like the calls to look like the following
+FileGraphManager = COMInterface("E436EBB3-524F-11CE-9F53-0020AF0BA770")
+
+then:
+
+local f = FileGraphManager()
+--]]
+
 
 ole32.CoUninitialize();
 

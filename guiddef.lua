@@ -4,7 +4,7 @@
 local ffi = require "ffi"
 local C = ffi.C
 
-require "Win32Types"
+require "WTypes"
 
 ffi.cdef[[
 typedef struct {
@@ -102,6 +102,19 @@ end
 function IsEqualFMTID(rfmtid1, rfmtid2)
 	return rfmtid1 == rfmtid2
 end
+
+--[[
+GUID Structure too large
+for inclusion in a structure?
+
+ffi.cdef[[
+// Originally from WTypes.h
+typedef struct _OBJECTID {
+	GUID Lineage;
+    unsigned long Uniquifier;
+} 	OBJECTID;
+]]
+--]]
 
 --[[
 print("guiddef.lua - TEST")

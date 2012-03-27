@@ -34,6 +34,7 @@ typedef unsigned long	ULONG;
 typedef unsigned int	ULONG32;
 typedef unsigned short	USHORT;
 
+
 // Some pointer types
 
 typedef void *			PVOID;
@@ -46,6 +47,7 @@ typedef uintptr_t		ULONG_PTR;
 typedef DWORD *			LPCOLORREF;
 
 typedef char *			LPSTR;
+typedef short *			LPWSTR;
 typedef LPSTR			LPTSTR;
 
 typedef DWORD *			LPDWORD;
@@ -78,6 +80,7 @@ typedef DWORD			COLORREF;
 // Special types
 typedef WORD			ATOM;
 typedef DWORD			LCID;
+typedef USHORT			LANGID;
 
 // Various Handles
 typedef void *			HANDLE;
@@ -118,6 +121,19 @@ typedef void *			HTASK;
 typedef void *			HWINSTA;
 typedef HANDLE			HWND;
 
+// Ole Automation
+//typedef WCHAR			OLECHAR;
+//typedef OLECHAR 		*LPOLESTR;
+//typedef const OLECHAR	*LPCOLESTR;
+
+typedef char      OLECHAR;
+typedef LPSTR     LPOLESTR;
+typedef LPCSTR    LPCOLESTR;
+
+typedef OLECHAR *BSTR;
+typedef BSTR *LPBSTR;
+
+
 
 typedef DWORD ACCESS_MASK;
 typedef ACCESS_MASK* PACCESS_MASK;
@@ -140,7 +156,258 @@ typedef union _LARGE_INTEGER {
 	LONGLONG QuadPart;
 } LARGE_INTEGER,  *PLARGE_INTEGER;
 
+typedef struct _FILETIME
+{
+    DWORD dwLowDateTime;
+    DWORD dwHighDateTime;
+} 	FILETIME;
+
+typedef struct _FILETIME *PFILETIME;
+
+typedef struct _FILETIME *LPFILETIME;
+
+
+typedef struct _SYSTEMTIME
+{
+    WORD wYear;
+    WORD wMonth;
+    WORD wDayOfWeek;
+    WORD wDay;
+    WORD wHour;
+    WORD wMinute;
+    WORD wSecond;
+    WORD wMilliseconds;
+} 	SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
+
+
+typedef struct _SECURITY_ATTRIBUTES {
+	DWORD nLength;
+	LPVOID lpSecurityDescriptor;
+	BOOL bInheritHandle;
+} SECURITY_ATTRIBUTES,  *PSECURITY_ATTRIBUTES,  *LPSECURITY_ATTRIBUTES;
+
+
+typedef USHORT SECURITY_DESCRIPTOR_CONTROL;
+
+typedef USHORT *PSECURITY_DESCRIPTOR_CONTROL;
+
+typedef PVOID PSID;
+
+typedef struct _ACL
+{
+    UCHAR AclRevision;
+    UCHAR Sbz1;
+    USHORT AclSize;
+    USHORT AceCount;
+    USHORT Sbz2;
+} 	ACL, *PACL;
+
+
+typedef struct _SECURITY_DESCRIPTOR
+{
+    UCHAR Revision;
+    UCHAR Sbz1;
+    SECURITY_DESCRIPTOR_CONTROL Control;
+    PSID Owner;
+    PSID Group;
+    PACL Sacl;
+    PACL Dacl;
+} 	SECURITY_DESCRIPTOR, *PISECURITY_DESCRIPTOR;
+
+typedef struct _COAUTHIDENTITY
+{
+    USHORT *User;
+    ULONG UserLength;
+    USHORT *Domain;
+    ULONG DomainLength;
+    USHORT *Password;
+    ULONG PasswordLength;
+    ULONG Flags;
+} 	COAUTHIDENTITY;
+
+typedef struct _COAUTHINFO
+{
+    DWORD dwAuthnSvc;
+    DWORD dwAuthzSvc;
+    LPWSTR pwszServerPrincName;
+    DWORD dwAuthnLevel;
+    DWORD dwImpersonationLevel;
+    COAUTHIDENTITY *pAuthIdentityData;
+    DWORD dwCapabilities;
+} 	COAUTHINFO;
+
+typedef LONG SCODE;
+
+typedef SCODE *PSCODE;
+
+
+typedef
+enum tagMEMCTX
+    {	MEMCTX_TASK	= 1,
+	MEMCTX_SHARED	= 2,
+	MEMCTX_MACSYSTEM	= 3,
+	MEMCTX_UNKNOWN	= -1,
+	MEMCTX_SAME	= -2
+    } 	MEMCTX;
+
+
+
+
+typedef
+enum tagMSHLFLAGS
+    {	MSHLFLAGS_NORMAL	= 0,
+	MSHLFLAGS_TABLESTRONG	= 1,
+	MSHLFLAGS_TABLEWEAK	= 2,
+	MSHLFLAGS_NOPING	= 4,
+	MSHLFLAGS_RESERVED1	= 8,
+	MSHLFLAGS_RESERVED2	= 16,
+	MSHLFLAGS_RESERVED3	= 32,
+	MSHLFLAGS_RESERVED4	= 64
+    } 	MSHLFLAGS;
+
+typedef
+enum tagMSHCTX
+    {	MSHCTX_LOCAL	= 0,
+	MSHCTX_NOSHAREDMEM	= 1,
+	MSHCTX_DIFFERENTMACHINE	= 2,
+	MSHCTX_INPROC	= 3,
+	MSHCTX_CROSSCTX	= 4
+    } 	MSHCTX;
+
+typedef
+enum tagDVASPECT
+    {	DVASPECT_CONTENT	= 1,
+	DVASPECT_THUMBNAIL	= 2,
+	DVASPECT_ICON	= 4,
+	DVASPECT_DOCPRINT	= 8
+    } 	DVASPECT;
+
+typedef
+enum tagSTGC
+    {	STGC_DEFAULT	= 0,
+	STGC_OVERWRITE	= 1,
+	STGC_ONLYIFCURRENT	= 2,
+	STGC_DANGEROUSLYCOMMITMERELYTODISKCACHE	= 4,
+	STGC_CONSOLIDATE	= 8
+    } 	STGC;
+
+typedef
+enum tagSTGMOVE
+    {	STGMOVE_MOVE	= 0,
+	STGMOVE_COPY	= 1,
+	STGMOVE_SHALLOWCOPY	= 2
+    } 	STGMOVE;
+
+typedef
+enum tagSTATFLAG
+    {	STATFLAG_DEFAULT	= 0,
+	STATFLAG_NONAME	= 1,
+	STATFLAG_NOOPEN	= 2
+    } 	STATFLAG;
+
+typedef  void *HCONTEXT;
+
+typedef struct _BYTE_BLOB
+    {
+    unsigned long clSize;
+    uint8_t abData[ 1 ];
+    } 	BYTE_BLOB;
+
+typedef struct _WORD_BLOB
+    {
+    unsigned long clSize;
+    unsigned short asData[ 1 ];
+    } 	WORD_BLOB;
+
+typedef struct _DWORD_BLOB
+    {
+    unsigned long clSize;
+    unsigned long alData[ 1 ];
+    } 	DWORD_BLOB;
+
+typedef struct _FLAGGED_BYTE_BLOB
+    {
+    unsigned long fFlags;
+    unsigned long clSize;
+    uint8_t abData[ 1 ];
+    } 	FLAGGED_BYTE_BLOB;
+
+typedef struct _FLAGGED_WORD_BLOB
+    {
+    unsigned long fFlags;
+    unsigned long clSize;
+    unsigned short asData[ 1 ];
+    } 	FLAGGED_WORD_BLOB;
+
+typedef struct _BYTE_SIZEDARR
+    {
+    unsigned long clSize;
+    uint8_t *pData;
+    } 	BYTE_SIZEDARR;
+
+typedef struct _SHORT_SIZEDARR
+    {
+    unsigned long clSize;
+    unsigned short *pData;
+    } 	WORD_SIZEDARR;
+
+typedef struct _LONG_SIZEDARR
+    {
+    unsigned long clSize;
+    unsigned long *pData;
+    } 	DWORD_SIZEDARR;
+
+
 ]]
+
+--typedef enum tagCLSCTX {
+	CLSCTX_INPROC_SERVER	= 0x1
+	CLSCTX_INPROC_HANDLER	= 0x2
+	CLSCTX_LOCAL_SERVER	= 0x4
+	CLSCTX_INPROC_SERVER16	= 0x8
+	CLSCTX_REMOTE_SERVER	= 0x10
+	CLSCTX_INPROC_HANDLER16	= 0x20
+	CLSCTX_RESERVED1	= 0x40
+	CLSCTX_RESERVED2	= 0x80
+	CLSCTX_RESERVED3	= 0x100
+	CLSCTX_RESERVED4	= 0x200
+	CLSCTX_NO_CODE_DOWNLOAD	= 0x400
+	CLSCTX_RESERVED5	= 0x800
+	CLSCTX_NO_CUSTOM_MARSHAL	= 0x1000
+	CLSCTX_ENABLE_CODE_DOWNLOAD	= 0x2000
+	CLSCTX_NO_FAILURE_LOG	= 0x4000
+	CLSCTX_DISABLE_AAA	= 0x8000
+	CLSCTX_ENABLE_AAA	= 0x10000
+	CLSCTX_FROM_DEFAULT_CONTEXT	= 0x20000
+	CLSCTX_ACTIVATE_32_BIT_SERVER	= 0x40000
+	CLSCTX_ACTIVATE_64_BIT_SERVER	= 0x80000
+	CLSCTX_ENABLE_CLOAKING	= 0x100000
+	CLSCTX_PS_DLL	= 0x80000000
+--} 	CLSCTX;
+
+CLSCTX_VALID_MASK = bor(
+    CLSCTX_INPROC_SERVER ,
+    CLSCTX_INPROC_HANDLER ,
+    CLSCTX_LOCAL_SERVER ,
+    CLSCTX_INPROC_SERVER16 ,
+    CLSCTX_REMOTE_SERVER ,
+    CLSCTX_NO_CODE_DOWNLOAD ,
+    CLSCTX_NO_CUSTOM_MARSHAL ,
+    CLSCTX_ENABLE_CODE_DOWNLOAD ,
+    CLSCTX_NO_FAILURE_LOG ,
+    CLSCTX_DISABLE_AAA ,
+    CLSCTX_ENABLE_AAA ,
+    CLSCTX_FROM_DEFAULT_CONTEXT ,
+    CLSCTX_ACTIVATE_32_BIT_SERVER ,
+    CLSCTX_ACTIVATE_64_BIT_SERVER ,
+    CLSCTX_ENABLE_CLOAKING ,
+    CLSCTX_PS_DLL)
+
+WDT_INPROC_CALL	=( 0x48746457 )
+
+WDT_REMOTE_CALL	=( 0x52746457 )
+
+WDT_INPROC64_CALL =	( 0x50746457 )
 
 
 

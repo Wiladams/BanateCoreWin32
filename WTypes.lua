@@ -91,6 +91,7 @@ typedef USHORT			LANGID;
 
 // Various Handles
 typedef void *			HANDLE;
+typedef HANDLE			*PHANDLE;
 typedef HANDLE			LPHANDLE;
 typedef void *			HBITMAP;
 typedef void *			HBRUSH;
@@ -129,13 +130,13 @@ typedef void *			HWINSTA;
 typedef HANDLE			HWND;
 
 // Ole Automation
-//typedef WCHAR			OLECHAR;
-//typedef OLECHAR 		*LPOLESTR;
-//typedef const OLECHAR	*LPCOLESTR;
+typedef WCHAR			OLECHAR;
+typedef OLECHAR 		*LPOLESTR;
+typedef const OLECHAR	*LPCOLESTR;
 
-typedef char      OLECHAR;
-typedef LPSTR     LPOLESTR;
-typedef LPCSTR    LPCOLESTR;
+//typedef char      OLECHAR;
+//typedef LPSTR     LPOLESTR;
+//typedef LPCSTR    LPCOLESTR;
 
 typedef OLECHAR *BSTR;
 typedef BSTR *LPBSTR;

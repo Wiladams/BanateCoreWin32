@@ -72,7 +72,7 @@ print("Texture:_init - Args: ", pixelaccessor)
 	gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT, Texture.Defaults.UnpackAlignment)
 	gl.glTexImage2D (gl.GL_TEXTURE_2D,
 		0, 				-- texture level
-		gl.GL_RGBA, 	-- internal format
+		gl.GL_RGB, 	-- internal format
 		self.Width, 	-- width
 		self.Height, 	-- height
 		0, 				-- border

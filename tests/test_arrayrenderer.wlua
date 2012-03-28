@@ -15,10 +15,6 @@ require "win_user32"
 require "win_opengl32"
 
 require "GameWindow"
---require "Pixel"
---require "Array2DAccessor"
---require "ArrayRenderer"
---require "FixedArray2D"
 
 
 local captureWidth = 640

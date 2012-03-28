@@ -12,8 +12,8 @@ local bor = bit.bor
 local lshift = bit.lshift
 local rshift = bit.rshift
 
-require "guiddef"
-
+require "WTypes"
+require "WinError"
 
 --
 -- NUI Common Initialization Declarations
@@ -30,6 +30,7 @@ NUI_INITIALIZE_DEFAULT_HARDWARE_THREAD  =0xFFFFFFFF
 
 ffi.cdef[[
 HRESULT NuiInitialize(DWORD dwFlags);
+
 void NuiShutdown();
 ]]
 
@@ -37,14 +38,15 @@ void NuiShutdown();
 --
 -- Define NUI error codes derived from win32 errors
 --
+
+E_NUI_DEVICE_NOT_CONNECTED  = __HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_CONNECTED)
+E_NUI_DEVICE_NOT_READY      = __HRESULT_FROM_WIN32(ERROR_NOT_READY)
+E_NUI_ALREADY_INITIALIZED   = __HRESULT_FROM_WIN32(ERROR_ALREADY_INITIALIZED)
+E_NUI_NO_MORE_ITEMS         = __HRESULT_FROM_WIN32(ERROR_NO_MORE_ITEMS)
+
+
+FACILITY_NUI = 0x301
 --[[
-#define E_NUI_DEVICE_NOT_CONNECTED  __HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_CONNECTED)
-#define E_NUI_DEVICE_NOT_READY      __HRESULT_FROM_WIN32(ERROR_NOT_READY)
-#define E_NUI_ALREADY_INITIALIZED   __HRESULT_FROM_WIN32(ERROR_ALREADY_INITIALIZED)
-#define E_NUI_NO_MORE_ITEMS         __HRESULT_FROM_WIN32(ERROR_NO_MORE_ITEMS)
-
-
-#define FACILITY_NUI 0x301
 #define S_NUI_INITIALIZING                      MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NUI, 1)                                             // 0x03010001
 #define E_NUI_FRAME_NO_DATA                     MAKE_HRESULT(SEVERITY_ERROR, FACILITY_NUI, 1)
 static_assert(E_NUI_FRAME_NO_DATA == 0x83010001, "Error code has changed.");

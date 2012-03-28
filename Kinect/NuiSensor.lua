@@ -154,23 +154,6 @@ typedef struct _NUI_LOCKED_RECT
 
 MICARRAY_ADAPTIVE_BEAM = 0x1100
 
-ffi.cdef[[
-typedef struct INuiFrameTexture INuiFrameTexture;
-
-typedef struct _NUI_IMAGE_FRAME
-    {
-    LARGE_INTEGER liTimeStamp;
-    DWORD dwFrameNumber;
-    NUI_IMAGE_TYPE eImageType;
-    NUI_IMAGE_RESOLUTION eResolution;
-    INuiFrameTexture *pFrameTexture;
-    DWORD dwFrameFlags;
-    NUI_IMAGE_VIEW_AREA ViewArea;
-    } 	NUI_IMAGE_FRAME;
-
-
-
-]]
 
 
 ffi.cdef[[
@@ -212,8 +195,9 @@ ffi.cdef[[
 
 
 ffi.cdef[[
+typedef struct INuiFrameTexture INuiFrameTexture;
 
-typedef struct _INuiFrameTextureVtbl
+typedef struct INuiFrameTextureVtbl
 {
 	// IUnknown
 	HRESULT (*QueryInterface )(
@@ -246,72 +230,81 @@ typedef struct _INuiFrameTextureVtbl
 
 } INuiFrameTextureVtbl;
 
-typedef struct _INuiFrameTexture
+typedef struct INuiFrameTexture
 {
-	struct _INuiFrameTextureVtbl *lpVtbl;
+	struct INuiFrameTextureVtbl *lpVtbl;
 } INuiFrameTexture;
 ]]
 
 
+ffi.cdef[[
+
+typedef struct _NUI_IMAGE_FRAME
+{
+	LARGE_INTEGER liTimeStamp;
+    DWORD dwFrameNumber;
+    NUI_IMAGE_TYPE eImageType;
+    NUI_IMAGE_RESOLUTION eResolution;
+    INuiFrameTexture *pFrameTexture;
+    DWORD dwFrameFlags;
+    NUI_IMAGE_VIEW_AREA ViewArea;
+} NUI_IMAGE_FRAME, *PNUI_IMAGE_FRAME;
+
+]]
 
 ffi.cdef[[
-	typedef struct INuiSensor INuiSensor;
+typedef struct INuiSensor INuiSensor;
 
-    typedef struct INuiSensorVtbl
-    {
+typedef struct INuiSensorVtbl
+{
+	// IUnknown
+	HRESULT (*QueryInterface)(INuiSensor * This,
+		REFIID riid,
+		void **ppvObject);
 
-        HRESULT (  *QueryInterface )(
-            INuiSensor * This,
-            /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */
-            void **ppvObject);
+	ULONG (*AddRef)(INuiSensor * This);
+	ULONG (*Release)(INuiSensor * This);
 
-        ULONG (  *AddRef )(INuiSensor * This);
-        ULONG (  *Release )(INuiSensor * This);
 
-        HRESULT (  *NuiInitialize )(
-            INuiSensor * This,
+	// INuiSensor
+	HRESULT (*NuiInitialize)(INuiSensor * This,
             /* [in] */ DWORD dwFlags);
 
-        void (  *NuiShutdown )(
-            INuiSensor * This);
+	void (  *NuiShutdown )(INuiSensor * This);
 
-        HRESULT (  *NuiSetFrameEndEvent )(
-            INuiSensor * This,
+	HRESULT (*NuiSetFrameEndEvent)(INuiSensor * This,
             /* [in] */ HANDLE hEvent,
             /* [in] */ DWORD dwFrameEventFlag);
 
-        HRESULT (  *NuiImageStreamOpen )(
-            INuiSensor * This,
-            /* [in] */ NUI_IMAGE_TYPE eImageType,
-            /* [in] */ NUI_IMAGE_RESOLUTION eResolution,
-            /* [in] */ DWORD dwImageFrameFlags,
-            /* [in] */ DWORD dwFrameLimit,
-            /* [in] */ HANDLE hNextFrameEvent,
-            /* [out] */ HANDLE *phStreamHandle);
+	HRESULT (*NuiImageStreamOpen)(INuiSensor * This,
+            NUI_IMAGE_TYPE eImageType,
+            NUI_IMAGE_RESOLUTION eResolution,
+            DWORD dwImageFrameFlags,
+            DWORD dwFrameLimit,
+            HANDLE hNextFrameEvent,
+            HANDLE *phStreamHandle);
 
-        HRESULT (  *NuiImageStreamSetImageFrameFlags )(
+	HRESULT (  *NuiImageStreamSetImageFrameFlags )(
             INuiSensor * This,
             /* [in] */ HANDLE hStream,
             /* [in] */ DWORD dwImageFrameFlags);
 
-        HRESULT (  *NuiImageStreamGetImageFrameFlags )(
+	HRESULT (  *NuiImageStreamGetImageFrameFlags )(
             INuiSensor * This,
             /* [in] */ HANDLE hStream,
             /* [retval][out] */ DWORD *pdwImageFrameFlags);
 
-        HRESULT (  *NuiImageStreamGetNextFrame )(
-            INuiSensor * This,
-            /* [in] */ HANDLE hStream,
-            /* [in] */ DWORD dwMillisecondsToWait,
-            /* [retval][out] */ NUI_IMAGE_FRAME *pImageFrame);
+	HRESULT (*NuiImageStreamGetNextFrame )(INuiSensor * This,
+		HANDLE hStream,
+        DWORD dwMillisecondsToWait,
+        NUI_IMAGE_FRAME *pImageFrame);
 
-        HRESULT (  *NuiImageStreamReleaseFrame )(
+	HRESULT (  *NuiImageStreamReleaseFrame )(
             INuiSensor * This,
-            /* [in] */ HANDLE hStream,
-            /* [in] */ NUI_IMAGE_FRAME *pImageFrame);
+            HANDLE hStream,
+            NUI_IMAGE_FRAME *pImageFrame);
 
-        HRESULT (  *NuiImageGetColorPixelCoordinatesFromDepthPixel )(
+	HRESULT (  *NuiImageGetColorPixelCoordinatesFromDepthPixel )(
             INuiSensor * This,
             /* [in] */ NUI_IMAGE_RESOLUTION eColorResolution,
             /* [in] */ const NUI_IMAGE_VIEW_AREA *pcViewArea,
@@ -321,7 +314,7 @@ ffi.cdef[[
             /* [out] */ LONG *plColorX,
             /* [out] */ LONG *plColorY);
 
-        HRESULT (  *NuiImageGetColorPixelCoordinatesFromDepthPixelAtResolution )(
+	HRESULT (*NuiImageGetColorPixelCoordinatesFromDepthPixelAtResolution )(
             INuiSensor * This,
             /* [in] */ NUI_IMAGE_RESOLUTION eColorResolution,
             /* [in] */ NUI_IMAGE_RESOLUTION eDepthResolution,
@@ -332,7 +325,7 @@ ffi.cdef[[
             /* [out] */ LONG *plColorX,
             /* [out] */ LONG *plColorY);
 
-        HRESULT (  *NuiImageGetColorPixelCoordinateFrameFromDepthPixelFrameAtResolution )(
+	HRESULT (*NuiImageGetColorPixelCoordinateFrameFromDepthPixelFrameAtResolution )(
             INuiSensor * This,
             /* [in] */ NUI_IMAGE_RESOLUTION eColorResolution,
             /* [in] */ NUI_IMAGE_RESOLUTION eDepthResolution,
@@ -341,32 +334,32 @@ ffi.cdef[[
             /* [in] */ DWORD cColorCoordinates,
             /* [size_is][out][in] */ LONG *pColorCoordinates);
 
-        HRESULT (  *NuiCameraElevationSetAngle )(
+	HRESULT (  *NuiCameraElevationSetAngle )(
             INuiSensor * This,
             /* [in] */ LONG lAngleDegrees);
 
-        HRESULT (  *NuiCameraElevationGetAngle )(
+	HRESULT (  *NuiCameraElevationGetAngle )(
             INuiSensor * This,
             /* [retval][out] */ LONG *plAngleDegrees);
 
-        HRESULT (  *NuiSkeletonTrackingEnable )(
+	HRESULT (  *NuiSkeletonTrackingEnable )(
             INuiSensor * This,
             /* [in] */ HANDLE hNextFrameEvent,
             /* [in] */ DWORD dwFlags);
 
-        HRESULT (  *NuiSkeletonTrackingDisable )(
+	HRESULT (  *NuiSkeletonTrackingDisable )(
             INuiSensor * This);
 
-        HRESULT (  *NuiSkeletonSetTrackedSkeletons )(
+	HRESULT (  *NuiSkeletonSetTrackedSkeletons )(
             INuiSensor * This,
             /* [size_is][in] */ DWORD *TrackingIDs);
 
-        HRESULT (  *NuiSkeletonGetNextFrame )(
+	HRESULT (  *NuiSkeletonGetNextFrame )(
             INuiSensor * This,
             /* [in] */ DWORD dwMillisecondsToWait,
             /* [out][in] */ NUI_SKELETON_FRAME *pSkeletonFrame);
 
-        HRESULT (  *NuiTransformSmooth )(
+	HRESULT (  *NuiTransformSmooth )(
             INuiSensor * This,
             NUI_SKELETON_FRAME *pSkeletonFrame,
             const NUI_TRANSFORM_SMOOTH_PARAMETERS *pSmoothingParams);
@@ -375,30 +368,24 @@ ffi.cdef[[
             INuiSensor * This,
             /* [out] */ INuiAudioBeam **ppDmo);
 
-        int (  *NuiInstanceIndex )(
-            INuiSensor * This);
+	int (*NuiInstanceIndex)(INuiSensor * This);
 
-        BSTR (  *NuiDeviceConnectionId )(
-            INuiSensor * This);
+	BSTR (*NuiDeviceConnectionId)(INuiSensor * This);
 
-        BSTR (  *NuiUniqueId )(
-            INuiSensor * This);
+	BSTR (*NuiUniqueId)(INuiSensor * This);
 
-        BSTR (  *NuiAudioArrayId )(
-            INuiSensor * This);
+	BSTR (*NuiAudioArrayId)(INuiSensor * This);
 
-        HRESULT (  *NuiStatus )(
-            INuiSensor * This);
+	HRESULT (*NuiStatus)(INuiSensor * This);
 
-        DWORD (  *NuiInitializationFlags )(
-            INuiSensor * This);
+	DWORD (*NuiInitializationFlags)(INuiSensor * This);
 
-    } INuiSensorVtbl;
+} INuiSensorVtbl;
 
-    typedef struct INuiSensor
-    {
-        INuiSensorVtbl *lpVtbl;
-    }INuiSensor;
+typedef struct INuiSensor
+{
+	INuiSensorVtbl *lpVtbl;
+} INuiSensor, *PINuiSensor;
 
 ]]
 
@@ -411,6 +398,7 @@ HRESULT  NuiCreateSensorById(const OLECHAR *strInstanceId, INuiSensor ** ppNuiSe
 HRESULT  NuiGetAudioSource(INuiAudioBeam ** ppDmo );
 
 typedef void (* NuiStatusProc)( HRESULT hrStatus, const OLECHAR* instanceName, const OLECHAR* uniqueDeviceName, void* pUserData );
+
 void NuiSetDeviceStatusCallback( NuiStatusProc callback, void* pUserData );
 ]]
 

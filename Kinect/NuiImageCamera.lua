@@ -25,7 +25,9 @@ HRESULT  NuiImageStreamGetImageFrameFlags(HANDLE hStream, DWORD *pdwImageFrameFl
 HRESULT  NuiSetFrameEndEvent(HANDLE hEvent, DWORD dwFrameEventFlag);
 
 HRESULT  NuiImageStreamOpen(NUI_IMAGE_TYPE eImageType,
-     NUI_IMAGE_RESOLUTION eResolution,DWORD dwImageFrameFlags, DWORD dwFrameLimit,
+    NUI_IMAGE_RESOLUTION eResolution,
+	DWORD dwImageFrameFlags,
+	DWORD dwFrameLimit,
     HANDLE hNextFrameEvent,HANDLE *phStreamHandle);
 
 HRESULT  NuiImageStreamGetNextFrame(HANDLE hStream, DWORD dwMillisecondsToWait, const NUI_IMAGE_FRAME **ppcImageFrame);
@@ -34,7 +36,8 @@ HRESULT  NuiImageStreamReleaseFrame(HANDLE hStream, const NUI_IMAGE_FRAME *pImag
 
 HRESULT  NuiImageGetColorPixelCoordinatesFromDepthPixel(NUI_IMAGE_RESOLUTION eColorResolution,
 	const NUI_IMAGE_VIEW_AREA *pcViewArea,
-	LONG   lDepthX, LONG   lDepthY, USHORT usDepthValue,
+	LONG   lDepthX, LONG   lDepthY,
+	USHORT usDepthValue,
     LONG *plColorX, LONG *plColorY);
 
 HRESULT  NuiImageGetColorPixelCoordinatesFromDepthPixelAtResolution(

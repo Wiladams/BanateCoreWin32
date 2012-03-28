@@ -32,7 +32,7 @@ local sw = StopWatch()
 
 
 -- Create the Kinect sensor
-local sensor0 = Kinect(0, NUI_INITIALIZE_FLAG_USES_COLOR)
+local sensor0 = Kinect.GetSensorByIndex(0, NUI_INITIALIZE_FLAG_USES_COLOR)
 
 
 function drawImage(appwin, graphPort, tickCount)
@@ -118,7 +118,7 @@ local function main()
 	local appwin = GameWindow({
 		Title = "Kinect Color Viewer",
 		OnTickDelegate = ontick,
-		FrameRate = 1,
+		FrameRate = 3,
 		Extent = {windowWidth, windowHeight},
 		})
 

@@ -19,8 +19,6 @@ local kinectlib = ffi.load("Kinect10")
 local kernel32 = ffi.load("kernel32")
 
 
-
-
 function printSensorAttributes(sensor)
 	print("Status: ", sensor:GetStatus())
 

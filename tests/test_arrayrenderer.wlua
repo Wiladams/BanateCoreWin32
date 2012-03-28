@@ -3,7 +3,6 @@ local ppath = package.path..';..\\?.lua;'
 package.path = ppath;
 
 
--- test_pixelbuffer_gl.lua
 local BC = require "BanateCore"
 
 local gl = require( "gl" )

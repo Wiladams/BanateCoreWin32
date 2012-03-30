@@ -23,8 +23,9 @@ local captureHeight = 480
 local windowWidth = 640
 local windowHeight = 480
 
-local window = FixedArray2D(captureWidth, captureHeight, "pixel_BGRA_b")
-local graphPort = ArrayRenderer(window)
+local window = Array2D(captureWidth, captureHeight, "pixel_BGRA_b")
+local graphPort = Array2DRenderer.Create(captureWidth, captureHeight, window, "pixel_BGRA_b")
+
 
 local screenTexture = nil
 
@@ -42,24 +43,7 @@ function drawImage(appwin, graphPort, tickCount)
 	-- If we successfully got a frame, then copy
 	-- the bits to our texture object
 	if success then
---[[
-		print("Locked Rect: ", sensor0.LockedRect)
-		print("Pitch: ", sensor0.LockedRect.Pitch)
-		print("Size: ", sensor0.LockedRect.size)
-		print("Bits: ", sensor0.LockedRect.pBits)
---]]
----[[
-		local colorAccessor = Array2DAccessor({
-			TypeName = "Ppixel_BGRA_b",
-			Width = captureWidth,
-			Height = captureHeight,
-			Data = sensor0.LockedRect.pBits,
-			BytesPerElement= 4,
-			Alignment = 1,
-		})
-
-		screenTexture:CopyPixelBuffer(colorAccessor)
---]]
+		screenTexture:CopyPixelData(captureWidth, captureHeight, sensor0.LockedRect.pBits, gl.GL_BGRA)
 	end
 
 	sensor0:ReleaseCurrentColorFrame()
@@ -110,7 +94,7 @@ local function setup(appwin)
 	gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
 	gl.glDisable( gl.GL_CULL_FACE)
 
-	screenTexture = Texture(window)
+	screenTexture = GLTexture.Create(captureWidth, captureHeight)
 end
 
 local function main()
@@ -118,7 +102,7 @@ local function main()
 	local appwin = GameWindow({
 		Title = "Kinect Color Viewer",
 		OnTickDelegate = ontick,
-		FrameRate = 3,
+		FrameRate = 15,
 		Extent = {windowWidth, windowHeight},
 		})
 

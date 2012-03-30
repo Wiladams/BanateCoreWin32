@@ -3,8 +3,12 @@ local ppath = package.path..';..\\?.lua;..\\core\\?.lua;'
 package.path = ppath;
 
 -- test_pixelbuffer_gl.lua
-local ffi   = require( "ffi" )
-local C = ffi.C
+
+require "BanateCore"
+
+
+--local ffi   = require( "ffi" )
+--local C = ffi.C
 local gl = require( "gl" )
 
 local wgl = ffi.load("opengl32")
@@ -16,27 +20,16 @@ require "win_opengl32"
 
 require "GameWindow"
 
-require "BanateCore"
-
-
 
 
 local captureWidth = 512
 local captureHeight = 256
 
 
-local pixelBuffer = FixedArray2D(captureWidth, captureHeight, "pixel_RGBA_b")
+local pixelBuffer = Array2D(captureWidth, captureHeight, "pixel_RGBA_b")
+local graphPort = Array2DRenderer.Create(captureWidth, captureHeight, pixelBuffer, "pixel_BGRA_b")
 
-local pixelAccessor = Array2DAccessor({
-	TypeName = "Ppixel_RGBA_b",
-	Width = captureWidth,
-	Height = captureHeight,
-	Data = pixelBuffer.Data,
-	BytesPerElement= 4,
-	})
-
-local graphPort = ArrayRenderer(pixelBuffer)
-
+local red = PixelRGBA(255,0,0,255)
 
 
 local screenTexture = nil
@@ -58,45 +51,21 @@ function updatepixbuff()
 		graphPort:LineV(i, 0, graphPort.Height-1, randomcolor())
 	end
 
-	for i=0,graphPort.Height-1,8 do
+	for i=0,graphPort.Height-1,4 do
 		graphPort:LineH(0, i, graphPort.Width-1, randomcolor())
 	end
 
 	---[[
-	for i=0,10000 do
+	for i=0,1000 do
 		local rcolor = randomcolor()
-		local x = math.random(0,pixelAccessor.Width-1)
-		local y = math.random(0,pixelAccessor.Height-1)
+		local x = math.random(0,graphPort.Width-1)
+		local y = math.random(0,graphPort.Height-1)
 
 		graphPort:SetPixel(x,y,rcolor)
 	end
 	--]]
 end
 
-function createTexture(pixelAccessor)
-	graphPort = ArrayRenderer(pixelAccessor)
-	local red = PixelRGBA(255,0,0,255)
-
-
-	-- Vertical lines
-	for i=0,pixelAccessor.Width-1,8 do
-		graphPort:LineV(i, 0, pixelAccessor.Height-1, randomcolor())
-	end
-
-	for i=0,pixelAccessor.Height-1,8 do
-		graphPort:LineH(0, i, pixelAccessor.Width-1, randomcolor())
-	end
-
-	for i=0,10000 do
-		local rcolor = randomcolor()
-		local x = math.random(0,pixelAccessor.Width-1)
-		local y = math.random(0,pixelAccessor.Height-1)
-
-		graphPort:SetPixel(x,y,rcolor)
-	end
-
-	screenTexture = Texture(pixelAccessor)
-end
 
 
 
@@ -127,9 +96,9 @@ end
 
 
 function ontick(win, tickCount)
-
 	updatepixbuff()
-	screenTexture:CopyPixelBuffer(pixelAccessor)
+
+	screenTexture:CopyPixelData(captureWidth, captureHeight, pixelBuffer, gl.GL_BGRA)
 
 	local winWidth, winHeight = win:GetClientSize()
 
@@ -138,15 +107,18 @@ function ontick(win, tickCount)
 
 	screenTexture:Render()
 
-	--gl.glRasterPos2i (10, 10)
-	--gl.glDrawPixels (captureWidth, captureHeight, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, pixelAccessor.Data);
-
-	--StretchBlt(win.GDIContext.Handle, pixelAccessor)
-
 	win:SwapBuffers()
 end
 
 
+local function setup()
+	-- setup blending mode
+	gl.glEnable( gl.GL_BLEND )
+	gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
+	gl.glDisable( gl.GL_CULL_FACE)
+
+	screenTexture = GLTexture.Create(captureWidth, captureHeight)
+end
 
 local function main()
 
@@ -161,14 +133,7 @@ local function main()
 	-- To ensure GLContext is active
 	appwin:Show()
 
-
-	-- setup blending mode
-	gl.glEnable( gl.GL_BLEND )
-	gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
-	gl.glDisable( gl.GL_CULL_FACE)
-
-
-	createTexture(pixelAccessor);
+	setup()
 
 	-- run the application
 	appwin:Run()

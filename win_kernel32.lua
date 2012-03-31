@@ -4,23 +4,35 @@ local C = ffi.C
 require "WTypes"
 
 ffi.cdef[[
-	HMODULE GetModuleHandleA(LPCSTR lpModuleName);
+typedef DWORD  (*LPTHREAD_START_ROUTINE)(LPVOID lpParameter);
+]]
 
-	BOOL CloseHandle(HANDLE hObject);
+ffi.cdef[[
+HMODULE GetModuleHandleA(LPCSTR lpModuleName);
 
-	HANDLE CreateEventA(LPSECURITY_ATTRIBUTES lpEventAttributes,
+BOOL CloseHandle(HANDLE hObject);
+
+HANDLE CreateEventA(LPSECURITY_ATTRIBUTES lpEventAttributes,
 		BOOL bManualReset, BOOL bInitialState, LPCSTR lpName);
 
-	void * GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
+HANDLE CreateThread(
+	LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	size_t dwStackSize,
+	LPTHREAD_START_ROUTINE lpStartAddress,
+	LPVOID lpParameter,
+	DWORD dwCreationFlags,
+	LPDWORD lpThreadId);
 
-	BOOL QueryPerformanceFrequency(int64_t *lpFrequency);
-	BOOL QueryPerformanceCounter(int64_t *lpPerformanceCount);
+void * GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
+
+BOOL QueryPerformanceFrequency(int64_t *lpFrequency);
+BOOL QueryPerformanceCounter(int64_t *lpPerformanceCount);
 
 //	DWORD QueueUserAPC(PAPCFUNC pfnAPC, HANDLE hThread, ULONG_PTR dwData);
 
-	void Sleep(DWORD dwMilliseconds);
+void Sleep(DWORD dwMilliseconds);
 
-	DWORD SleepEx(DWORD dwMilliseconds, BOOL bAlertable);
+DWORD SleepEx(DWORD dwMilliseconds, BOOL bAlertable);
 ]]
 
 function GetPerformanceFrequency()

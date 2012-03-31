@@ -36,9 +36,11 @@ printWSADATA(WinSock.WSAData)
 local ipn = winsock2.inet_addr("127.0.0.1")
 local localhostipn = ffi.new("int[1]", ipn)
 
+function printaddresses()
 print(string.format("Loopback: 0x%x", ffi.C.INADDR_LOOPBACK))
 print(string.format("Address : 0x%x",localhostipn[0]))
 print(string.format("Address2: 0x%x",bswap(winsock2.inet_addr("127.0.0.1"))))
+end
 
 
 -- Get a host entry based on the address
@@ -73,38 +75,47 @@ local function printAddressInfo(info)
 	print("Addr Len: ", info.ai_addrlen)
 	print("Addr: ", info.ai_addr)
 	print("Name: ", info.ai_canonname)
+	print("Next: ", info.ai_next)
+
+	if info.ai_next ~= nil then
+		printAddressInfo(info.ai_next)
+	end
 end
 
-local hostentry = winsock2.gethostbyaddr(ffi.cast("char *", localhostipn), 4, ffi.C.AF_INET)
-printHostEntry(hostentry)
+--local hostentry = winsock2.gethostbyaddr(ffi.cast("char *", localhostipn), 4, AF_INET)
+--printHostEntry(hostentry)
 
-local localhostname = GetLocalHostName()
-print("Local Host Name: ", localhostname)
+--local localhostname = GetLocalHostName()
+--print("Local Host Name: ", localhostname)
+
+--printaddresses()
+
 
 local hints = ffi.new("struct addrinfo")
 --hints.ai_flags = band(C.AI_FQDN, C.AI_CANONNAME)
 --hints.ai_flags = C.AI_PASSIVE
-hints.ai_flags = C.AI_CANONNAME
+hints.ai_flags = AI_CANONNAME
 --hints.ai_family = C.AF_INET
 --hints.ai_family = C.AF_UNSPEC
-hints.ai_socktype = C.SOCK_STREAM
+hints.ai_socktype = SOCK_STREAM
 hints.ai_protocol = C.IPPROTO_TCP
-local addrinfos = ffi.new("struct addrinfo[1]")
-local err = winsock2.getaddrinfo(localhostname,nil,nil,addrinfos);
+local addrinfos = ffi.new("Paddrinfoa[1]")
+--local err = winsock2.getaddrinfo(localhostname,nil,nil,addrinfos);
+local err = winsock2.getaddrinfo("192.168.1.101",nil,nil,addrinfos);
 print("ERROR: ", err)
 print("AddrInfos: ", addrinfos)
 print("AddrInfos[0]:", addrinfos[0])
---print("AddrInfos[0][0]:", addrinfos[0][0])
+
 printAddressInfo(addrinfos[0])
 
-hostentry = winsock2.gethostbyname("www.google.com");
-printHostEntry(hostentry)
+--hostentry = winsock2.gethostbyname("www.google.com");
+--printHostEntry(hostentry)
 
-hostentry = winsock2.gethostbyname("www.microsoft.com");
-printHostEntry(hostentry)
+--hostentry = winsock2.gethostbyname("www.microsoft.com");
+--printHostEntry(hostentry)
 
-hostentry = winsock2.gethostbyname("dvice.com");
-printHostEntry(hostentry)
+--hostentry = winsock2.gethostbyname("dvice.com");
+--printHostEntry(hostentry)
 
 --local avalue = MAKEWORD(5,7)
 --print(string.format("0x%x", avalue))

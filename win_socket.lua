@@ -20,34 +20,85 @@ require "WTypes"
 
 
 ffi.cdef[[
-typedef unsigned char   u_char;
-typedef unsigned short  u_short;
-typedef unsigned int    u_int;
+typedef uint8_t		u_char;
+typedef uint16_t 	u_short;
+typedef uint32_t    u_int;
 typedef unsigned long   u_long;
-typedef uint64_t 		u_int64;
+typedef uint64_t 	u_int64;
 
-typedef UINT_PTR	SOCKET;
+typedef uintptr_t	SOCKET;
 
-typedef USHORT 		ADDRESS_FAMILY;
+typedef uint16_t 	ADDRESS_FAMILY;
 
 ]]
 
+
+
 INVALID_SOCKET = ffi.new("SOCKET", -1)
+SOCKET_ERROR =  -1
+
+
+INADDR_ANY             = 0x00000000
+INADDR_LOOPBACK        = 0x7f000001
+INADDR_BROADCAST       = 0xffffffff
+INADDR_NONE            = 0xffffffff
+
+
+-- Socket Types
+SOCK_STREAM     = 1    -- stream socket
+SOCK_DGRAM      = 2    -- datagram socket
+SOCK_RAW        = 3    -- raw-protocol interface
+SOCK_RDM        = 4    -- reliably-delivered message
+SOCK_SEQPACKET  = 5    -- sequenced packet stream
+
+
+-- Address families
+	AF_UNSPEC = 0          -- unspecified */
+	AF_UNIX = 1            -- local to host (pipes, portals) */
+	AF_INET = 2            -- internetwork: UDP, TCP, etc. */
+	AF_IMPLINK = 3         -- arpanet imp addresses */
+	AF_PUP = 4            -- pup protocols: e.g. BSP */
+	AF_CHAOS = 5           -- mit CHAOS protocols */
+	AF_IPX = 6             -- IPX and SPX */
+	AF_NS = 6              -- XEROX NS protocols */
+	AF_ISO = 7             -- ISO protocols */
+	AF_OSI = AF_ISO        -- OSI is ISO */
+	AF_ECMA = 8            -- european computer manufacturers */
+	AF_DATAKIT = 9         -- datakit protocols */
+	AF_CCITT = 10          -- CCITT protocols, X.25 etc */
+	AF_SNA = 11           -- IBM SNA */
+	AF_DECnet = 12         -- DECnet */
+	AF_DLI = 13            -- Direct data link interface */
+	AF_LAT = 14            -- LAT */
+	AF_HYLINK = 15         -- NSC Hyperchannel */
+	AF_APPLETALK = 16      -- AppleTalk */
+	AF_NETBIOS = 17        -- NetBios-style addresses */
+	AF_VOICEVIEW = 18     -- VoiceView */
+	AF_FIREFOX = 19        -- FireFox */
+	AF_UNKNOWN1 = 20       -- Somebody is using this! */
+	AF_BAN = 21            -- Banyan */
+	AF_INET6  =      23              -- Internetwork Version 6
+	AF_IRDA   =      26              -- IrDA
+
+	AF_MAX = 33
+
+
+
+
+
+IPPROTO_RAW          =   255             -- raw IP packet
+IPPROTO_MAX          =   256
+
+--
+--  These are reserved for internal use by Windows.
+--
+IPPROTO_RESERVED_RAW = 257
+IPPROTO_RESERVED_IPSEC = 258
+IPPROTO_RESERVED_IPSECOFFLOAD = 259
+IPPROTO_RESERVED_MAX = 260
+
 
 ffi.cdef[[
-/*
- * This is used instead of -1, since the
- * SOCKET type is unsigned.
- */
-enum {
-//	INVALID_SOCKET  = ~0,
-	SOCKET_ERROR =  -1,
-};
-
-/*
- * Constants and structures defined by the internet system,
- * Per RFC 790, September 1981, taken from the BSD file netinet/in.h.
- */
 
 /*
  * Protocols
@@ -79,61 +130,10 @@ enum {
 	IPPROTO_SCTP = 132,
 };
 
-enum {
-	IPPROTO_RAW          =   255,             /* raw IP packet */
-	IPPROTO_MAX          =   256,
-};
 
-        //
-        //  These are reserved for internal use by Windows.
-        //
-enum {
-	IPPROTO_RESERVED_RAW = 257,
-	IPPROTO_RESERVED_IPSEC = 258,
-	IPPROTO_RESERVED_IPSECOFFLOAD = 259,
-	IPPROTO_RESERVED_MAX = 260,
-}
 
-// Address families
-enum {
-	AF_UNSPEC = 0,          /* unspecified */
-	AF_UNIX = 1,            /* local to host (pipes, portals) */
-	AF_INET = 2,            /* internetwork: UDP, TCP, etc. */
-	AF_IMPLINK = 3,         /* arpanet imp addresses */
-	AF_PUP = 4,             /* pup protocols: e.g. BSP */
-	AF_CHAOS = 5,           /* mit CHAOS protocols */
-	AF_IPX = 6,             /* IPX and SPX */
-	AF_NS = 6,              /* XEROX NS protocols */
-	AF_ISO = 7,             /* ISO protocols */
-	AF_OSI = AF_ISO,        /* OSI is ISO */
-	AF_ECMA = 8,            /* european computer manufacturers */
-	AF_DATAKIT = 9,         /* datakit protocols */
-	AF_CCITT = 10,          /* CCITT protocols, X.25 etc */
-	AF_SNA = 11,            /* IBM SNA */
-	AF_DECnet = 12,         /* DECnet */
-	AF_DLI = 13,            /* Direct data link interface */
-	AF_LAT = 14,            /* LAT */
-	AF_HYLINK = 15,         /* NSC Hyperchannel */
-	AF_APPLETALK = 16,      /* AppleTalk */
-	AF_NETBIOS = 17,        /* NetBios-style addresses */
-	AF_VOICEVIEW = 18,      /* VoiceView */
-	AF_FIREFOX = 19,        /* FireFox */
-	AF_UNKNOWN1 = 20,       /* Somebody is using this! */
-	AF_BAN = 21,            /* Banyan */
-	AF_INET6  =      23,              // Internetwork Version 6
-	AF_IRDA   =      26,              // IrDA
 
-	AF_MAX = 33,
-};
 
-// Socket Types
-enum {
-	SOCK_STREAM     = 1,    /* stream socket */
-	SOCK_DGRAM      = 2,    /* datagram socket */
-	SOCK_RAW        = 3,    /* raw-protocol interface */
-	SOCK_RDM        = 4,    /* reliably-delivered message */
-	SOCK_SEQPACKET  = 5,    /* sequenced packet stream */
-};
 
 // for get/setsockopt, the levels can be:
 // IPPROTO_XXX - IP, IPV6, RM, TCP, UDP
@@ -383,15 +383,13 @@ typedef struct addrinfo {
 	char* ai_canonname;
 	struct sockaddr* ai_addr;
 	struct addrinfo* ai_next;
-} ADDRINFOA,  *PADDRINFOA;
+} addrinfoa,  *Paddrinfoa;
 ]]
 
 -- Structure Definitions
 ffi.cdef[[
-typedef DWORD                   WSAEVENT, *LPWSAEVENT;
+typedef DWORD		WSAEVENT, *LPWSAEVENT;
 
-
-//#define WSAAPI    FAR PASCAL
 typedef	HANDLE 		WSAEVENT;
 typedef	LPHANDLE	LPWSAEVENT;
 
@@ -578,42 +576,39 @@ int shutdown(SOCKET s, int how);
 
 ]]
 
+
+--
+--  Flags used in "hints" argument to getaddrinfo()
+--      - AI_ADDRCONFIG is supported starting with Vista
+--      - default is AI_ADDRCONFIG ON whether the flag is set or not
+--        because the performance penalty in not having ADDRCONFIG in
+--        the multi-protocol stack environment is severe;
+--        this defaulting may be disabled by specifying the AI_ALL flag,
+--        in that case AI_ADDRCONFIG must be EXPLICITLY specified to
+--        enable ADDRCONFIG behavior
+--
+
+
+AI_PASSIVE                  =0x00000001  -- Socket address will be used in bind() call
+AI_CANONNAME                =0x00000002  -- Return canonical name in first ai_canonname
+AI_NUMERICHOST              =0x00000004  -- Nodename must be a numeric address string
+AI_NUMERICSERV              =0x00000008  -- Servicename must be a numeric port number
+
+AI_ALL                      =0x00000100  -- Query both IP6 and IP4 with AI_V4MAPPED
+AI_ADDRCONFIG               =0x00000400  -- Resolution only if global address configured
+AI_V4MAPPED                 =0x00000800  -- On v6 failure, query v4 and convert to V4MAPPED format
+
+AI_NON_AUTHORITATIVE        =0x00004000  -- LUP_NON_AUTHORITATIVE
+AI_SECURE                   =0x00008000  -- LUP_SECURE
+AI_RETURN_PREFERRED_NAMES   =0x00010000  -- LUP_RETURN_PREFERRED_NAMES
+
+AI_FQDN                     =0x00020000  -- Return the FQDN in ai_canonname
+AI_FILESERVER               =0x00040000  -- Resolving fileserver name resolution
+
+
 ffi.cdef[[
-enum {
-	INADDR_ANY             = (ULONG)0x00000000,
-	INADDR_LOOPBACK        = 0x7f000001,
-	INADDR_BROADCAST       = (ULONG)0xffffffff,
-	INADDR_NONE            = 0xffffffff,
-}
 
-//
-//  Flags used in "hints" argument to getaddrinfo()
-//      - AI_ADDRCONFIG is supported starting with Vista
-//      - default is AI_ADDRCONFIG ON whether the flag is set or not
-//        because the performance penalty in not having ADDRCONFIG in
-//        the multi-protocol stack environment is severe;
-//        this defaulting may be disabled by specifying the AI_ALL flag,
-//        in that case AI_ADDRCONFIG must be EXPLICITLY specified to
-//        enable ADDRCONFIG behavior
-//
 
-enum {
-AI_PASSIVE                  =0x00000001,  // Socket address will be used in bind() call
-AI_CANONNAME                =0x00000002,  // Return canonical name in first ai_canonname
-AI_NUMERICHOST              =0x00000004,  // Nodename must be a numeric address string
-AI_NUMERICSERV              =0x00000008,  // Servicename must be a numeric port number
-
-AI_ALL                      =0x00000100,  // Query both IP6 and IP4 with AI_V4MAPPED
-AI_ADDRCONFIG               =0x00000400,  // Resolution only if global address configured
-AI_V4MAPPED                 =0x00000800,  // On v6 failure, query v4 and convert to V4MAPPED format
-
-AI_NON_AUTHORITATIVE        =0x00004000,  // LUP_NON_AUTHORITATIVE
-AI_SECURE                   =0x00008000,  // LUP_SECURE
-AI_RETURN_PREFERRED_NAMES   =0x00010000,  // LUP_RETURN_PREFERRED_NAMES
-
-AI_FQDN                     =0x00020000,  // Return the FQDN in ai_canonname
-AI_FILESERVER               =0x00040000,  // Resolving fileserver name resolution
-}
 
 unsigned long inet_addr(const char* cp);
 char* inet_ntoa(struct   in_addr in);
@@ -625,7 +620,7 @@ struct hostent* gethostbyname(const char* name);
 
 int GetNameInfoA(const struct sockaddr * sa, DWORD salen, char * host, DWORD hostlen, char * serv,DWORD servlen,int flags);
 //int GetAddrInfoA(const char* nodename,const char* servname,const struct addrinfo* hints,struct addrinfo** res);
-int getaddrinfo(const char* nodename,const char* servname,const struct addrinfo* hints,struct addrinfo* res);
+int getaddrinfo(const char* nodename,const char* servname,const struct addrinfo* hints,addrinfoa ** res);
 
 ]]
 

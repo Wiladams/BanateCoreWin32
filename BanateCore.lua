@@ -1430,8 +1430,13 @@ function angle(u, v)
 	end
 end
 
+--=====================================
+--	Extras, like Processing
+--=====================================
 
-
+function map(a, rlo, rhi, slo, shi)
+	return slo + ((a-rlo)/(rhi-rlo) * (shi-slo))
+end
 
 if not BanateCore_000 then
 require "000"
@@ -1544,6 +1549,7 @@ local function mat4_assign(a, b)
 	for i=0,15 do
 		a[i] = b[i]
 	end
+	return a
 end
 
 local function mat4_get_col(m, col, roworder)
@@ -1802,6 +1808,19 @@ local function mat4_create_rotation_new(angle, x, y, z)
 	return mat4_create_rotation(mat4_new(), angle, x, y, z)
 end
 
+local function mat4_create_orthographic_new(xMin, xMax, yMin, yMax, zMin, zMax)
+	local res = mat4_assign(mat4_new(), mat4_identity)
+
+	res[0] = 2.0 / (xMax - xMin);
+	res[5] = 2.0 / (yMax - yMin);
+	res[10] = -2.0 / (zMax - zMin);
+	res[12] = -((xMax + xMin)/(xMax - xMin));
+	res[13] = -((yMax + yMin)/(yMax - yMin));
+	res[14] = -((zMax + zMin)/(zMax - zMin));
+	res[15] = 1.0;
+
+	return res
+end
 
 -- Transform a Point
 -- Need to include the 'w'
@@ -1890,6 +1909,7 @@ Mat4 = {
 	CreateRotation = mat4_create_rotation_new,
 	CreateScale = mat4_create_scale_new,
 	CreateTranslation = mat4_create_translation_new,
+	CreateOrthographic = mat4_create_orthographic_new,
 
 	TransformPoint = mat4_transform_pt_new,
 	TransformNormal = mat4_transform_vec_new,
@@ -2355,6 +2375,38 @@ function TransferArray2D(dst, src,  dstX, dstY, srcBounds, driver, elementOp)
 
 	driver(dst, src, targetFrame, dstFrame, srcRect, elementOp)
 end
+if not BanateCore_000 then
+require "000"
+end
+
+--[[
+	The ViewportTransform goes the last bit and converts
+	from normalized device coordinates and actual screen
+	coordinates.
+--]]
+class.ViewportTransform()
+
+function ViewportTransform:_init(width, height, x, y)
+	x = x or 0
+	y = y or 0
+
+	self.X = x
+	self.Y = y
+	self.Width = width
+	self.Height = math.abs(height)
+	self.Sign = sign(height)
+end
+
+function ViewportTransform:Transform(v)
+	local x1 = map(v[0], -1, 1, self.X, self.X+self.Width-1)
+	local y1 = map(v[1], -1*self.Sign, 1*self.Sign, self.Y, self.Y+self.Height-1)
+
+	return vec3(x1, y1, v[2])
+end
+
+
+
+
 
 
 function FindTopmostPolyVertex(poly, nelems)
@@ -2562,3 +2614,4 @@ return {
 	RectI = RectI,
 	Vec = Vec3,
 }
+

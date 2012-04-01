@@ -46,4 +46,4 @@ function execlua (codechunk)
 
 end
 
-execlua("print('hello world'); return 5")
+execlua("print('hello world')")

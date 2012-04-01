@@ -546,6 +546,7 @@ Vec3 = {
 	Distance = vec3_distance,
 	FindNormal = vec3_find_normal_new,
 	Normalize = vec3_normalize_new,
+	NormalizeSelf = vec3_normalize_self,
 	AngleBetween = vec3_angle_between,
 
 	tostring = vec3_tostring,

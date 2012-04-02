@@ -26,6 +26,7 @@ typedef float 			FLOAT;
 typedef long			LONG;
 typedef signed int		LONG32;
 typedef int64_t			LONGLONG;
+typedef size_t			SIZE_T;
 
 typedef uint8_t			BCHAR;
 typedef unsigned char	UCHAR;

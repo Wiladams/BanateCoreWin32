@@ -3,9 +3,15 @@ local C = ffi.C
 
 require "WTypes"
 
+
+
+
+
 ffi.cdef[[
 typedef DWORD  (*LPTHREAD_START_ROUTINE)(LPVOID lpParameter);
 ]]
+
+
 
 ffi.cdef[[
 HMODULE GetModuleHandleA(LPCSTR lpModuleName);
@@ -14,6 +20,11 @@ BOOL CloseHandle(HANDLE hObject);
 
 HANDLE CreateEventA(LPSECURITY_ATTRIBUTES lpEventAttributes,
 		BOOL bManualReset, BOOL bInitialState, LPCSTR lpName);
+
+HANDLE CreateIoCompletionPort(HANDLE FileHandle,
+	HANDLE ExistingCompletionPort,
+	ULONG_PTR CompletionKey,
+	DWORD NumberOfConcurrentThreads);
 
 HANDLE CreateThread(
 	LPSECURITY_ATTRIBUTES lpThreadAttributes,

@@ -4,7 +4,18 @@ lua = require "Luaffi"
 
 class.LuaState()
 
-function LuaState:_init(codechunk)
+LuaState.Defaults = {
+}
+
+
+local function report_errors(L, status)
+	if status ~=0 then
+		print("-- ", ffi.string(lua_tostring(L, -1)))
+		lua_pop(L, 1); -- remove error message
+	end
+end
+
+function LuaState:_init(codechunk, autorun)
 	local status, result
 	local L = lua.luaL_newstate();  -- create state
 
@@ -14,53 +25,54 @@ function LuaState:_init(codechunk)
 	end
 
 	self.State = L
-	-- Load whatever libraries are necessary for
-	-- your code to start
-    lua.luaopen_base(L)
---[[
-	print("luaopen_io: ", lua.luaopen_io(L)); -- provides io.*
-    print("luaopen_table", lua.luaopen_table(L));
+	self.Init = LuaState.Defaults.InitLua
 
-    print("luaopen_string", lua.luaopen_string(L));
-    print("luaopen_math", lua.luaopen_math(L));
-	print("luaopen_bit", lua.luaopen_bit(L));
-	print("luaopen_jit", lua.luaopen_jit(L));
-	print("luaopen_ffi", lua.luaopen_ffi(L));
---]]
+	-- Must at least load base library
+	-- or 'require' and print won't work
+	lua.luaopen_base(L)
+	lua.luaopen_base(L)
+	lua.luaopen_string(L);
+	lua.luaopen_math(L);
+	lua.luaopen_io(L);
+	lua.luaopen_table(L);
+
+	lua.luaopen_bit(L);
+	lua.luaopen_jit(L);
+	lua.luaopen_ffi(L);
+
+	if self.Init then
+		self.InitStatus = self:Run(self.Init)
+	end
 
 	if codechunk then
-		self:LoadChunk(codechunk)
+		self.CodeChunk = codechunk
+		if autorun then
+			self:Run(codechunk)
+		end
 	end
 end
 
 function LuaState:LoadChunk(s)
-	self.CodeChunk = s
-
 	local result = lua.luaL_loadstring(self.State, s)
-
-	self.CompileStatus = result
+	report_errors(self.State, result)
 
 	return result
 end
 
 function LuaState:Run(codechunk)
-	if codechunk then
-		self:LoadChunk(codechunk)
-	end
-
 	local result
-
-	if self.CompileStatus == 0 then
-		result = lua.lua_pcall(self.State, 0, LUA_MULTRET, 0)
-		self.RunStatus = result
-	else
-		return self.CompileStatus
+	if codechunk then
+		result = self:LoadChunk(codechunk)
 	end
 
-	return self.RunStatus
+
+	if result == 0 then
+		result = lua.lua_pcall(self.State, 0, LUA_MULTRET, 0)
+	report_errors(self.State, result)
+	else
+		return result
+	end
+
+	return result
 end
 
-local codechunk = "print('hello world')"
-local st = LuaState(codechunk)
---st:LoadChunk(codechunk)
-st:Run()

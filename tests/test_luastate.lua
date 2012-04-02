@@ -5,13 +5,7 @@ package.path = ppath;
 
 local ffi = require "ffi"
 lua = require "Luaffi"
-
-function report_errors(L, status)
-	if status ~=0 then
-		print("-- ", ffi.string(lua_tostring(L, -1)))
-		lua_pop(L, 1); -- remove error message
-	end
-end
+require "LuaState"
 
 function execlua (codechunk)
 
@@ -46,4 +40,19 @@ function execlua (codechunk)
 
 end
 
-execlua("print('hello world')")
+
+
+local codechunk = [[
+local str = "hello lua!"
+print(str, string.len(str))
+
+print("Math: ", math.abs(-1))
+]]
+
+local st = LuaState(codechunk, true)
+--st:LoadChunk(codechunk)
+--st:Run(codechunk)
+--st:Run()
+
+
+--execlua(codechunk)

@@ -435,9 +435,7 @@ DWORD MsgWaitForMultipleObjects(
 	DWORD nCount,
 	const HANDLE* pHandles,
 	BOOL bWaitAll,
-	DWORD dwMilliseconds,
-	DWORD dwWakeMask
-);
+	DWORD dwMilliseconds);
 
 DWORD MsgWaitForMultipleObjectsEx(
 	DWORD nCount,

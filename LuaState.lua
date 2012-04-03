@@ -30,7 +30,6 @@ function LuaState:_init(codechunk, autorun)
 	-- Must at least load base library
 	-- or 'require' and print won't work
 	lua.luaopen_base(L)
-	lua.luaopen_base(L)
 	lua.luaopen_string(L);
 	lua.luaopen_math(L);
 	lua.luaopen_io(L);

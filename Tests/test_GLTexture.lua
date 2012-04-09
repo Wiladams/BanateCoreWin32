@@ -1,14 +1,11 @@
 -- Put this at the top of any test
-local ppath = package.path..';..\\?.lua;..\\core\\?.lua;'
+local ppath = package.path..';..\\?.lua;'
 package.path = ppath;
 
--- test_pixelbuffer_gl.lua
 
 require "BanateCore"
 
 
---local ffi   = require( "ffi" )
---local C = ffi.C
 local gl = require( "gl" )
 
 local wgl = ffi.load("opengl32")

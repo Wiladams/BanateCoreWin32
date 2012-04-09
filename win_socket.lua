@@ -7,7 +7,16 @@
 
 --]]
 
+-- WinTypes.h
+-- WinBase.h
+
 -- ws2_32.dll
+-- inaddr.h
+-- in6addr.h
+-- ws2tcpip.h
+-- ws2def.h
+-- winsock2.h
+
 local ffi = require "ffi"
 local bit = require "bit"
 local lshift = bit.lshift
@@ -16,8 +25,7 @@ local band = bit.band
 local bor = bit.bor
 local bswap = bit.bswap
 
-require "WTypes"
-
+require "WinBase"
 
 ffi.cdef[[
 typedef uint8_t		u_char;
@@ -29,6 +37,9 @@ typedef uint64_t 	u_int64;
 typedef uintptr_t	SOCKET;
 
 typedef uint16_t 	ADDRESS_FAMILY;
+
+typedef unsigned int GROUP;
+
 
 ]]
 
@@ -43,6 +54,8 @@ INADDR_LOOPBACK        = 0x7f000001
 INADDR_BROADCAST       = 0xffffffff
 INADDR_NONE            = 0xffffffff
 
+INET_ADDRSTRLEN			= 16
+INET6_ADDRSTRLEN		= 46
 
 -- Socket Types
 SOCK_STREAM     = 1    -- stream socket
@@ -53,37 +66,65 @@ SOCK_SEQPACKET  = 5    -- sequenced packet stream
 
 
 -- Address families
-	AF_UNSPEC = 0          -- unspecified */
-	AF_UNIX = 1            -- local to host (pipes, portals) */
-	AF_INET = 2            -- internetwork: UDP, TCP, etc. */
-	AF_IMPLINK = 3         -- arpanet imp addresses */
-	AF_PUP = 4            -- pup protocols: e.g. BSP */
-	AF_CHAOS = 5           -- mit CHAOS protocols */
-	AF_IPX = 6             -- IPX and SPX */
-	AF_NS = 6              -- XEROX NS protocols */
-	AF_ISO = 7             -- ISO protocols */
-	AF_OSI = AF_ISO        -- OSI is ISO */
-	AF_ECMA = 8            -- european computer manufacturers */
-	AF_DATAKIT = 9         -- datakit protocols */
-	AF_CCITT = 10          -- CCITT protocols, X.25 etc */
-	AF_SNA = 11           -- IBM SNA */
-	AF_DECnet = 12         -- DECnet */
-	AF_DLI = 13            -- Direct data link interface */
-	AF_LAT = 14            -- LAT */
-	AF_HYLINK = 15         -- NSC Hyperchannel */
-	AF_APPLETALK = 16      -- AppleTalk */
-	AF_NETBIOS = 17        -- NetBios-style addresses */
-	AF_VOICEVIEW = 18     -- VoiceView */
-	AF_FIREFOX = 19        -- FireFox */
-	AF_UNKNOWN1 = 20       -- Somebody is using this! */
-	AF_BAN = 21            -- Banyan */
-	AF_INET6  =      23              -- Internetwork Version 6
-	AF_IRDA   =      26              -- IrDA
+AF_UNSPEC 		= 0          -- unspecified */
+AF_UNIX 		= 1            -- local to host (pipes, portals) */
+AF_INET 		= 2            -- internetwork: UDP, TCP, etc. */
+AF_IMPLINK 		= 3         -- arpanet imp addresses */
+AF_PUP 			= 4            -- pup protocols: e.g. BSP */
+AF_CHAOS 		= 5           -- mit CHAOS protocols */
+AF_IPX 			= 6             -- IPX and SPX */
+AF_NS 			= 6              -- XEROX NS protocols */
+AF_ISO 			= 7             -- ISO protocols */
+AF_OSI 			= AF_ISO        -- OSI is ISO */
+AF_ECMA 		= 8            -- european computer manufacturers */
+AF_DATAKIT 		= 9         -- datakit protocols */
+AF_CCITT 		= 10          -- CCITT protocols, X.25 etc */
+AF_SNA 			= 11           -- IBM SNA */
+AF_DECnet 		= 12         -- DECnet */
+AF_DLI 			= 13            -- Direct data link interface */
+AF_LAT 			= 14            -- LAT */
+AF_HYLINK 		= 15         -- NSC Hyperchannel */
+AF_APPLETALK 	= 16      -- AppleTalk */
+AF_NETBIOS 		= 17        -- NetBios-style addresses */
+AF_VOICEVIEW 	= 18     -- VoiceView */
+AF_FIREFOX 		= 19        -- FireFox */
+AF_UNKNOWN1 	= 20       -- Somebody is using this! */
+AF_BAN 			= 21            -- Banyan */
+AF_INET6  		= 23              -- Internetwork Version 6
+AF_IRDA   		= 26              -- IrDA
 
-	AF_MAX = 33
+AF_MAX = 33
 
 
 
+--
+-- Protocols
+--
+
+IPPROTO_IP			= 0;		-- dummy for IP
+IPPROTO_ICMP		= 1;		-- control message protocol
+IPPROTO_IGMP		= 2;		-- group management protocol
+IPPROTO_GGP			= 3;		-- gateway^2 (deprecated)
+IPPROTO_TCP			= 6;		-- tcp
+IPPROTO_PUP			= 12;		-- pup
+IPPROTO_UDP			= 17;		-- user datagram protocol
+IPPROTO_IDP			= 22;		-- xns idp
+IPPROTO_RDP			= 27;
+IPPROTO_IPV6		= 41;		-- IPv6 header
+IPPROTO_ROUTING		= 43;		-- IPv6 Routing header
+IPPROTO_FRAGMENT	= 44;		-- IPv6 fragmentation header
+IPPROTO_ESP			= 50;		-- encapsulating security payload
+IPPROTO_AH			= 51;		-- authentication header
+IPPROTO_ICMPV6		= 58;		-- ICMPv6
+IPPROTO_NONE		= 59;		-- IPv6 no next header
+IPPROTO_DSTOPTS		= 60;		-- IPv6 Destination options
+IPPROTO_ND			= 77;		-- UNOFFICIAL net disk proto
+IPPROTO_ICLFXBM		= 78;
+IPPROTO_PIM			= 103;
+IPPROTO_PGM			= 113;
+IPPROTO_RM			= IPPROTO_PGM;
+IPPROTO_L2TP		= 115;
+IPPROTO_SCTP		= 132;
 
 
 IPPROTO_RAW          =   255             -- raw IP packet
@@ -97,43 +138,35 @@ IPPROTO_RESERVED_IPSEC = 258
 IPPROTO_RESERVED_IPSECOFFLOAD = 259
 IPPROTO_RESERVED_MAX = 260
 
+--
+-- Options for use with [gs]etsockopt at the IP level.
+--
+IP_OPTIONS         = 1;           -- set/get IP per-packet options
+IP_MULTICAST_IF    = 2;           -- set/get IP multicast interface
+IP_MULTICAST_TTL   = 3;           -- set/get IP multicast timetolive
+IP_MULTICAST_LOOP  = 4;           -- set/get IP multicast loopback
+IP_ADD_MEMBERSHIP  = 5;           -- add  an IP group membership
+IP_DROP_MEMBERSHIP = 6;           -- drop an IP group membership
+IP_TTL             = 7;           -- set/get IP Time To Live
+IP_TOS             = 8;           -- set/get IP Type Of Service
+IP_DONTFRAGMENT    = 9;           -- set/get IP Don't Fragment flag
+
+
+
+
+--
+-- WinSock 2 extension -- manifest constants for WSASocket()
+--
+WSA_FLAG_OVERLAPPED           	= 0x01
+WSA_FLAG_MULTIPOINT_C_ROOT    	= 0x02
+WSA_FLAG_MULTIPOINT_C_LEAF    	= 0x04
+WSA_FLAG_MULTIPOINT_D_ROOT    	= 0x08
+WSA_FLAG_MULTIPOINT_D_LEAF    	= 0x10
+WSA_FLAG_ACCESS_SYSTEM_SECURITY = 0x40
+
+
 
 ffi.cdef[[
-
-/*
- * Protocols
- */
-enum {
-	IPPROTO_IP = 0,               /* dummy for IP */
-	IPPROTO_ICMP = 1,               /* control message protocol */
-	IPPROTO_IGMP = 2,               /* group management protocol */
-	IPPROTO_GGP = 3,               /* gateway^2 (deprecated) */
-	IPPROTO_TCP = 6,               /* tcp */
-	IPPROTO_PUP = 12,              /* pup */
-	IPPROTO_UDP = 17,              /* user datagram protocol */
-	IPPROTO_IDP = 22,              /* xns idp */
-	IPPROTO_RDP = 27,
-	IPPROTO_IPV6 = 41, // IPv6 header
-	IPPROTO_ROUTING = 43, // IPv6 Routing header
-	IPPROTO_FRAGMENT = 44, // IPv6 fragmentation header
-	IPPROTO_ESP = 50, // encapsulating security payload
-	IPPROTO_AH = 51, // authentication header
-	IPPROTO_ICMPV6 = 58, // ICMPv6
-	IPPROTO_NONE = 59, // IPv6 no next header
-	IPPROTO_DSTOPTS = 60, // IPv6 Destination options
-	IPPROTO_ND = 77,              /* UNOFFICIAL net disk proto */
-	IPPROTO_ICLFXBM = 78,
-	IPPROTO_PIM = 103,
-	IPPROTO_PGM = 113,
-	IPPROTO_RM = IPPROTO_PGM,
-	IPPROTO_L2TP = 115,
-	IPPROTO_SCTP = 132,
-};
-
-
-
-
-
 
 // for get/setsockopt, the levels can be:
 // IPPROTO_XXX - IP, IPV6, RM, TCP, UDP
@@ -145,20 +178,6 @@ enum {
 	SOL_SOCKET     = 0xffff,          /* options for socket level */
 };
 
-/*
-* Options for use with [gs]etsockopt at the IP level.
-*/
-enum {
-	IP_OPTIONS         = 1,           /* set/get IP per-packet options    */
-	IP_MULTICAST_IF    = 2,           /* set/get IP multicast interface   */
-	IP_MULTICAST_TTL   = 3,           /* set/get IP multicast timetolive  */
-	IP_MULTICAST_LOOP  = 4,           /* set/get IP multicast loopback    */
-	IP_ADD_MEMBERSHIP  = 5,           /* add  an IP group membership      */
-	IP_DROP_MEMBERSHIP = 6,           /* drop an IP group membership      */
-	IP_TTL             = 7,           /* set/get IP Time To Live          */
-	IP_TOS             = 8,           /* set/get IP Type Of Service       */
-	IP_DONTFRAGMENT    = 9,           /* set/get IP Don't Fragment flag   */
-}
 
 enum {
 	IP_DEFAULT_MULTICAST_TTL  = 1,    /* normally limit m'casts to 1 hop  */
@@ -308,14 +327,14 @@ typedef struct in_addr {
 		struct {
 			uint16_t s_w1,s_w2;
 			} S_un_w;
-		uint32_t S_addr;
-	} S_un;
+		uint32_t s_addr;
+	} ;
 } IN_ADDR, *PIN_ADDR, *LPIN_ADDR;
 ]]
 
 ffi.cdef[[
-struct sockaddr {
-	uint16_t	sa_family;
+typedef struct sockaddr {
+	ADDRESS_FAMILY	sa_family;
 	uint8_t		sa_data[14];
 } SOCKADDR, *PSOCKADDR, *LPSOCKADDR;
 
@@ -329,6 +348,9 @@ typedef struct sockaddr_in {
 ]]
 
 
+
+
+
 ffi.cdef[[
 //
 // IPv6 Internet address (RFC 2553)
@@ -336,32 +358,53 @@ ffi.cdef[[
 //
 typedef struct in6_addr {
     union {
-        UCHAR       Byte[16];
-        USHORT      Word[8];
+        u_char       Byte[16];
+        u_short      Word[8];
     } u;
 } IN6_ADDR, *PIN6_ADDR, *LPIN6_ADDR;
 
-struct sockaddr_in6 {
-        int16_t		sin6_family;
-        uint16_t	sin6_port;
-        uint32_t	sin6_flowinfo;
-        struct  in6_addr sin6_addr;
-        u_long  sin6_scope_id;
-};
+typedef struct sockaddr_in6 {
+        short				sin6_family;
+        u_short				sin6_port;
+        u_long				sin6_flowinfo;
+        struct  in6_addr 	sin6_addr;
+        u_long  			sin6_scope_id;
+} sockaddr_in6;
 
 typedef struct sockaddr_in6 SOCKADDR_IN6;
 typedef struct sockaddr_in6 *PSOCKADDR_IN6;
 typedef struct sockaddr_in6 *LPSOCKADDR_IN6;
 
 
+//
+// Portable socket structure (RFC 2553).
+//
+
+enum {
+	_SS_MAXSIZE = 128,	// Maximum size
+	_SS_ALIGNSIZE = 8,	// (sizeof(__int64))
+
+	_SS_PAD1SIZE = _SS_ALIGNSIZE - 2,
+	_SS_PAD2SIZE = _SS_MAXSIZE - (2 + _SS_PAD1SIZE + _SS_ALIGNSIZE)
+};
+
+
 /*
 typedef struct sockaddr_storage {
-	short ss_family;
+	ADDRESS_FAMILY ss_family;
 	char __ss_pad1[_SS_PAD1SIZE];
-	__int64 __ss_align;
+	int64_t __ss_align;
 	char __ss_pad2[_SS_PAD2SIZE];
 } SOCKADDR_STORAGE,  *PSOCKADDR_STORAGE;
+//__attribute__ ((aligned (8)));
 */
+
+typedef struct sockaddr_storage {
+	ADDRESS_FAMILY ss_family;
+	uint8_t pad[_SS_MAXSIZE-2];
+} SOCKADDR_STORAGE,  *PSOCKADDR_STORAGE;
+
+
 ]]
 
 
@@ -373,7 +416,9 @@ typedef struct hostent {
 	short h_length;
 	char ** h_addr_list;
 } HOSTENT,  *PHOSTENT,  *LPHOSTENT;
+]]
 
+ffi.cdef[[
 typedef struct addrinfo {
 	int ai_flags;
 	int ai_family;
@@ -381,9 +426,9 @@ typedef struct addrinfo {
 	int ai_protocol;
 	size_t ai_addrlen;
 	char* ai_canonname;
-	struct sockaddr* ai_addr;
+	SOCKADDR_STORAGE * ai_addr;
 	struct addrinfo* ai_next;
-} addrinfoa,  *Paddrinfoa;
+} ADDRINFOA,  *PADDRINFOA;
 ]]
 
 -- Structure Definitions
@@ -392,22 +437,6 @@ typedef DWORD		WSAEVENT, *LPWSAEVENT;
 
 typedef	HANDLE 		WSAEVENT;
 typedef	LPHANDLE	LPWSAEVENT;
-
-typedef struct _OVERLAPPED {
-    ULONG_PTR Internal;
-    ULONG_PTR InternalHigh;
-    union {
-        struct {
-            DWORD Offset;
-            DWORD OffsetHigh;
-        };
-
-        PVOID Pointer;
-    };
-
-    HANDLE hEvent;
-} OVERLAPPED, *LPOVERLAPPED;
-
 
 typedef OVERLAPPED	WSAOVERLAPPED;
 typedef struct _OVERLAPPED *    LPWSAOVERLAPPED;
@@ -488,30 +517,45 @@ typedef struct _WSAPROTOCOLCHAIN {
 	int ChainLen;
 	DWORD ChainEntries[MAX_PROTOCOL_CHAIN];
 } WSAPROTOCOLCHAIN,  *LPWSAPROTOCOLCHAIN;
+]]
 
+ffi.cdef[[
+typedef struct _WSAPROTOCOL_INFOA {
+    DWORD dwServiceFlags1;
+    DWORD dwServiceFlags2;
+    DWORD dwServiceFlags3;
+    DWORD dwServiceFlags4;
+    DWORD dwProviderFlags;
+    GUID ProviderId;
+    DWORD dwCatalogEntryId;
+    WSAPROTOCOLCHAIN ProtocolChain;
+    int iVersion;
+    int iAddressFamily;
+    int iMaxSockAddr;
+    int iMinSockAddr;
+    int iSocketType;
+    int iProtocol;
+    int iProtocolMaxOffset;
+    int iNetworkByteOrder;
+    int iSecurityScheme;
+    DWORD dwMessageSize;
+    DWORD dwProviderReserved;
+    CHAR   szProtocol[WSAPROTOCOL_LEN+1];
+} WSAPROTOCOL_INFOA,  *LPWSAPROTOCOL_INFOA;
+]]
 
-typedef struct _WSAPROTOCOL_INFO {
-	DWORD dwServiceFlags1;
-	DWORD dwServiceFlags2;
-	DWORD dwServiceFlags3;
-	DWORD dwServiceFlags4;
-	DWORD dwProviderFlags;
-	GUID ProviderId;
-	DWORD dwCatalogEntryId;
-	WSAPROTOCOLCHAIN ProtocolChain;
-	int iVersion;
-	int iAddressFamily;
-	int iMaxSockAddr;
-	int iMinSockAddr;
-	int iSocketType;
-	int iProtocol;
-	int iProtocolMaxOffset;
-	int iNetworkByteOrder;
-	int iSecurityScheme;
-	DWORD dwMessageSize;
-	DWORD dwProviderReserved;
-	TCHAR szProtocol[WSAPROTOCOL_LEN+1];
-} WSAPROTOCOL_INFO,  *LPWSAPROTOCOL_INFO;
+ffi.cdef[[
+/*
+ * WSAMSG -- for WSASendMsg
+ */
+typedef struct _WSAMSG {
+    LPSOCKADDR       name;
+    INT              namelen;
+    LPWSABUF         lpBuffers;
+    ULONG            dwBufferCount;
+    WSABUF           Control;
+    ULONG            dwFlags;
+} WSAMSG, *PWSAMSG, * LPWSAMSG;
 ]]
 
 
@@ -542,13 +586,21 @@ u_short htons(u_short hostshort);
 u_short ntohs(u_short netshort);
 u_long	ntohl(u_long netlong);
 
+unsigned long inet_addr(const char* cp);
+char* inet_ntoa(struct   in_addr in);
+
+int inet_pton(int Family, const char * szAddrString, const void * pAddrBuf);
+const char * inet_ntop(int Family, const void *pAddr, intptr_t strptr, size_t len);
+
 SOCKET socket(int af, int type, int protocol);
 
 SOCKET accept(SOCKET s,struct sockaddr* addr,int* addrlen);
 
 int bind(SOCKET s, const struct sockaddr* name, int namelen);
 
-int connect(SOCKET s, const struct sockaddr* name, int namelen);
+int closesocket(SOCKET s);
+
+int connect(SOCKET s, const struct sockaddr * name, int namelen);
 
 int getsockname(SOCKET s, struct sockaddr* name, int* namelen);
 
@@ -574,6 +626,14 @@ int shutdown(SOCKET s, int how);
 
 
 
+int gethostname(char* name, int namelen);
+
+struct hostent* gethostbyaddr(const char* addr,int len,int type);
+struct hostent* gethostbyname(const char* name);
+
+int GetNameInfoA(const struct sockaddr * sa, DWORD salen, char * host, DWORD hostlen, char * serv,DWORD servlen,int flags);
+int getaddrinfo(const char* nodename,const char* servname,const struct addrinfo* hints,PADDRINFOA * res);
+void freeaddrinfo(PADDRINFOA pAddrInfo);
 ]]
 
 
@@ -606,23 +666,6 @@ AI_FQDN                     =0x00020000  -- Return the FQDN in ai_canonname
 AI_FILESERVER               =0x00040000  -- Resolving fileserver name resolution
 
 
-ffi.cdef[[
-
-
-
-unsigned long inet_addr(const char* cp);
-char* inet_ntoa(struct   in_addr in);
-
-int gethostname(char* name, int namelen);
-
-struct hostent* gethostbyaddr(const char* addr,int len,int type);
-struct hostent* gethostbyname(const char* name);
-
-int GetNameInfoA(const struct sockaddr * sa, DWORD salen, char * host, DWORD hostlen, char * serv,DWORD servlen,int flags);
-//int GetAddrInfoA(const char* nodename,const char* servname,const struct addrinfo* hints,struct addrinfo** res);
-int getaddrinfo(const char* nodename,const char* servname,const struct addrinfo* hints,addrinfoa ** res);
-
-]]
 
 function MAKEWORD(low,high)
 	return bor(low , lshift(high , 8))
@@ -697,10 +740,51 @@ else
 end
 
 ffi.cdef[[
-SOCKET WSASocket(int af, int type, int protocol,
-	LPWSAPROTOCOL_INFO lpProtocolInfo,
-	int g,
-	DWORD dwFlags);
+
+SOCKET WSASocketA(int af, int type, int protocol, LPWSAPROTOCOL_INFOA lpProtocolInfo,
+    GROUP g, DWORD dwFlags);
+
+BOOL AcceptEx (SOCKET sListenSocket, SOCKET sAcceptSocket,
+	PVOID lpOutputBuffer,
+    DWORD dwReceiveDataLength,
+    DWORD dwLocalAddressLength,
+    DWORD dwRemoteAddressLength,
+    LPDWORD lpdwBytesReceived,
+    LPOVERLAPPED lpOverlapped);
+
+INT WSARecvEx(SOCKET s, CHAR *buf, INT len, INT *flags);
+
+
+
+int WSASend(SOCKET s, LPWSABUF lpBuffers, DWORD dwBufferCount,
+    LPDWORD lpNumberOfBytesSent, DWORD dwFlags,
+    LPWSAOVERLAPPED lpOverlapped,
+	LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
+
+
+int  WSASendMsg(SOCKET Handle, LPWSAMSG lpMsg, DWORD dwFlags,
+    LPDWORD lpNumberOfBytesSent, LPWSAOVERLAPPED lpOverlapped,
+	LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
+
+int WSASendDisconnect(SOCKET s, LPWSABUF lpOutboundDisconnectData);
+
+int WSASendTo(SOCKET s,
+    LPWSABUF lpBuffers,
+    DWORD dwBufferCount,
+    LPDWORD lpNumberOfBytesSent,
+    DWORD dwFlags,
+    const struct sockaddr * lpTo,
+    int iTolen,
+    LPWSAOVERLAPPED lpOverlapped,
+	LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine);
+
+BOOL WSASetEvent(WSAEVENT hEvent);
+
+INT WSAAddressToStringA(LPSOCKADDR lpsaAddress,
+	DWORD dwAddressLength,
+	LPWSAPROTOCOL_INFOA lpProtocolInfo,
+    LPSTR lpszAddressString,
+	LPDWORD lpdwAddressStringLength);
 
 ]]
 
@@ -733,4 +817,13 @@ end
 
 return {
 	WSAData = wsadata,
+
+	Socket = winsock2.WSASocketA,
+	Send = winsock2.WSASend,
+	SendMsg = winsock2.WSASendMsg,
+	SendDisconnect = winsock2.WSASendDisconnect,
+	SendTo = winsock2.WSASendTo,
+	SetEvent = winsock2.WSASetEvent,
+	AddressToString = winsock2.WSAAddressToStringA,
+
 }

@@ -21,10 +21,14 @@ BOOL CloseHandle(HANDLE hObject);
 HANDLE CreateEventA(LPSECURITY_ATTRIBUTES lpEventAttributes,
 		BOOL bManualReset, BOOL bInitialState, LPCSTR lpName);
 
+
 HANDLE CreateIoCompletionPort(HANDLE FileHandle,
 	HANDLE ExistingCompletionPort,
 	ULONG_PTR CompletionKey,
 	DWORD NumberOfConcurrentThreads);
+
+
+
 
 HANDLE CreateThread(
 	LPSECURITY_ATTRIBUTES lpThreadAttributes,
@@ -33,6 +37,11 @@ HANDLE CreateThread(
 	LPVOID lpParameter,
 	DWORD dwCreationFlags,
 	LPDWORD lpThreadId);
+
+DWORD ResumeThread(HANDLE hThread);
+BOOL SwitchToThread(void);
+DWORD SuspendThread(HANDLE hThread);
+
 
 void * GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
 

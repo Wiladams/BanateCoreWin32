@@ -3,7 +3,7 @@
 local ppath = package.path..';..\\?.lua'
 package.path = ppath;
 
-require "OSThread"
+require "LuaScriptThread"
 require "LuaState"
 require "win_user32"
 require "WinBase"
@@ -11,19 +11,24 @@ require "WinBase"
 local user32 = ffi.load("user32")
 
 
-ffi.cdef[[
-int RunLuaThread(void *s);
-]]
 
-local lua = ffi.load("lua51")
---lua.RunLuaThread([[print("Hello, Lua!!")]])
 
 
 handles = ffi.new("HANDLE[2]")
 
+ffi.cdef("typedef struct {int Data;}buffer;")
+
 
 local code1 = [[
+	ffi = require "ffi"
+
+	ffi.cdef("typedef struct {int Data;}buffer;")
+
 	print("thread code 1")
+	local voidptr = ffi.cast("void *", _ThreadParam)
+	local buff = ffi.cast("buffer *", voidptr)
+
+	print("Buffer Data: ", buff.Data)
 ]]
 
 local code2 = [[
@@ -34,14 +39,17 @@ local code2 = [[
 
 
 -- Create a couple of threads
+local buff1 = ffi.new("buffer[1]")
+buff1[0].Data = 5
 
-thread1 = OSThread(lua.RunLuaThread, ffi.cast("void *", code1))
-thread2 = OSThread(lua.RunLuaThread, ffi.cast("void *", code2))
+thread1 = LuaScriptThread(code1, buff1)
+thread2 = LuaScriptThread(code2, nil, true)
 
 handles[0] = thread1.Handle
 handles[1] = thread2.Handle
 
 -- Wait until the threads terminate
+thread2:Resume()
 
 user32.MsgWaitForMultipleObjects(2, handles, true, 500)
 

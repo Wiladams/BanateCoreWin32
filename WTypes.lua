@@ -54,6 +54,7 @@ typedef DWORD *			DWORD_PTR;
 typedef intptr_t		LONG_PTR;
 typedef uintptr_t		UINT_PTR;
 typedef uintptr_t		ULONG_PTR;
+typedef ULONG_PTR *		PULONG_PTR;
 
 
 typedef DWORD *			LPCOLORREF;

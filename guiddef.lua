@@ -68,7 +68,7 @@ GUID_mt = {
 }
 GUID = ffi.metatype("GUID", GUID_mt)
 
-require "CGuid"
+--require "CGuid"
 
 GUID_NULL = GUID()
 IID_NULL = GUID_NULL

@@ -1,11 +1,37 @@
 local ffi = require "ffi"
 local C = ffi.C
 
-require "WTypes"
+require "WinBase"
 
+-- File System Calls
+--
+ffi.cdef[[
 
+HANDLE CreateFileA(LPCTSTR lpFileName,
+	DWORD dwDesiredAccess,
+	DWORD dwShareMode,
+	LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+	DWORD dwCreationDisposition,
+	DWORD dwFlagsAndAttributes,
+	HANDLE hTemplateFile
+);
 
+BOOL GetFileInformationByHandle(HANDLE hFile,
+    PBY_HANDLE_FILE_INFORMATION lpFileInformation);
 
+BOOL GetFileTime(HANDLE hFile,
+	LPFILETIME lpCreationTime,
+	LPFILETIME lpLastAccessTime,
+	LPFILETIME lpLastWriteTime);
+
+BOOL FileTimeToSystemTime(const FILETIME* lpFileTime, LPSYSTEMTIME lpSystemTime);
+
+	/*
+HFILE WINAPI OpenFile(LPCSTR lpFileName,
+	LPOFSTRUCT lpReOpenBuff,
+	UINT uStyle);
+*/
+]]
 
 ffi.cdef[[
 typedef DWORD  (*LPTHREAD_START_ROUTINE)(LPVOID lpParameter);

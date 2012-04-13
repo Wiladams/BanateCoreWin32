@@ -654,20 +654,3 @@ BITMAPINFO_mt = {
 }
 BITMAPINFO = ffi.metatype("BITMAPINFO", BITMAPINFO_mt)
 
-
-
-
---[[
-local C = ffi.C
-
-
-print("POINT size: ", ffi.sizeof("POINT"))
-
-print("INT64: ", ffi.sizeof("INT64"))
-
-local cref1 = RGB(32, 64, 128)
-print(GetRValue(cref1), GetGValue(cref1), GetBValue(cref1))
-
-
-
---]]

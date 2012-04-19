@@ -2,7 +2,6 @@
 
 local ffi = require "ffi"
 require "WTypes"
-require "guiddef"
 
 -- Forward declarations
 ffi.cdef[[
